@@ -63,29 +63,29 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCRN-01 | — | Pending |
-| SCRN-02 | — | Pending |
-| SCRN-03 | — | Pending |
-| SCRN-04 | — | Pending |
-| SCRN-05 | — | Pending |
-| SCRN-06 | — | Pending |
-| SEL-01 | — | Pending |
-| SEL-02 | — | Pending |
-| SEL-03 | — | Pending |
-| CALC-01 | — | Pending |
-| CALC-02 | — | Pending |
-| CALC-03 | — | Pending |
-| CALC-04 | — | Pending |
-| PLAT-01 | — | Pending |
-| PLAT-02 | — | Pending |
-| PLAT-03 | — | Pending |
-| PLAT-04 | — | Pending |
+| SCRN-01 | Phase 1 | Pending |
+| SCRN-02 | Phase 1 | Pending |
+| SCRN-03 | Phase 1 | Pending |
+| SCRN-04 | Phase 1 | Pending |
+| SCRN-05 | Phase 1 | Pending |
+| SCRN-06 | Phase 1 | Pending |
+| SEL-01 | Phase 1 | Pending |
+| SEL-02 | Phase 1 | Pending |
+| SEL-03 | Phase 1 | Pending |
+| CALC-01 | Phase 2 | Pending |
+| CALC-02 | Phase 2 | Pending |
+| CALC-03 | Phase 2 | Pending |
+| CALC-04 | Phase 2 | Pending |
+| PLAT-01 | Phase 3 | Pending |
+| PLAT-02 | Phase 3 | Pending |
+| PLAT-03 | Phase 3 | Pending |
+| PLAT-04 | Phase 3 | Pending |
 
 **Coverage:**
 - v1 requirements: 17 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 17 ⚠️
+- Mapped to phases: 17 (Phase 1: 9, Phase 2: 4, Phase 3: 4)
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-07-04*
-*Last updated: 2026-07-04 after initial definition*
+*Last updated: 2026-07-04 after roadmap creation*
