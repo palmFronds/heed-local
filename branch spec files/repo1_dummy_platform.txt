@@ -1,0 +1,128 @@
+REPO 1 — heed-demo-platform
+============================
+What this is
+------------
+A self-contained, mobile-only web application that simulates a high-stakes
+user flow — styled as a crypto wallet / swap interface, but with no blockchain
+connection, no external APIs, and no backend of any kind. Every screen, input,
+and CTA exists purely to produce realistic DOM structure that Heed can
+instrument and that agents can interact with programmatically.
+
+This is the environment Heed lives on top of. It is also the environment
+agents run through to generate synthetic behavioral data. It must feel real
+enough that the hesitation signals it produces transfer to actual production
+environments.
+
+What this is NOT
+----------------
+- Not connected to any blockchain, wallet, or external service
+- Not a demo of Heed (that is Repo 2's job)
+- Not responsive or desktop-aware — mobile viewport only (390px wide)
+- Not visually polished beyond what is needed for realistic UX behavior
+
+Why it exists
+-------------
+Before you can instrument hesitation, you need a surface to instrument.
+Before you can run agents through a flow, you need a flow to run them through.
+Before you can walk into a pilot conversation knowing what you need from a
+partner, you need to have done it yourself first — mapped the screens, written
+the selectors, understood what breaks.
+
+This repo teaches you that. Every decision made here (which elements exist,
+which selectors are stable, how screens transition) is a decision you will
+have to make again with a real partner. Do it wrong here, debug it here,
+understand why it broke. That knowledge is what makes the pilot ask specific
+and credible.
+
+Stack
+-----
+- Next.js (App Router) — page routing between screens
+- Tailwind CSS — styling, mobile-constrained
+- Shadcn/ui — form inputs, buttons, cards (already familiar from website)
+- No backend, no database, no auth, no external fetch calls
+- Hosted locally via `npm run dev`, optionally deployed to Vercel for
+  agent access without localhost tunneling
+
+Viewport constraint
+-------------------
+The app renders correctly only at 390px width (iPhone 14 viewport).
+On wider viewports, show a plain centered message: "This app is mobile-only."
+No responsive layout work. No breakpoints. One context only.
+
+Screen structure (the flow)
+---------------------------
+Screen 1 — Wallet Overview
+  Purpose: entry point, gives the user something to look at before committing
+  Elements: wallet balance display, asset list (2-3 rows), a prominent CTA
+            button ("Swap" or "Send") that advances to Screen 2
+  Hesitation surface: low — this screen exists to establish context, not to
+                      generate signal. Agents pass through it quickly.
+
+Screen 2 — Amount Entry + Fee Disclosure
+  Purpose: the primary hesitation screen. User enters an amount, sees a fee
+           row update in real time (calculated client-side, no API), sees a
+           minimum received row, and a gas estimate.
+  Elements:
+    - Amount input field: input[data-heed="amount-input"]
+    - Fee disclosure row: div[data-heed="fee-row"]
+    - Minimum received row: div[data-heed="min-received-row"]
+    - Proceed CTA: button[data-heed="proceed-cta"]
+  Hesitation surface: HIGH. This is where dwell, blur-without-completion,
+                      and scroll reversal will fire. This is the screen that
+                      matters most for signal generation.
+
+Screen 3 — Confirmation
+  Purpose: final decision point before "transaction" completes
+  Elements:
+    - Summary of what the user entered (read-only)
+    - Confirm button: button[data-heed="confirm-cta"]
+    - Back affordance: button[data-heed="back-btn"]
+  Hesitation surface: HIGH. Pause before confirm, tap of back button, and
+                      touch-hold-without-lift all fire here.
+
+Screen 4 — Success
+  Purpose: marks flow completion for Heed's logging layer
+  Elements: success message, a "done" or "home" CTA
+  This screen is the completionSelector target in Heed's config.
+
+The data-heed attribute convention
+-----------------------------------
+Every element Heed will target gets a data-heed="[name]" attribute.
+These are the stable selectors that go into Heed's config JSON.
+They survive CSS class changes, Tailwind purges, and component refactors.
+This is the CONTRACT between Repo 1 and Repo 2. Do not rename them once set.
+
+Full selector list (the contract):
+  [data-heed="amount-input"]     — amount entry field on Screen 2
+  [data-heed="fee-row"]          — fee disclosure row on Screen 2
+  [data-heed="min-received-row"] — minimum received row on Screen 2
+  [data-heed="proceed-cta"]      — proceed button on Screen 2
+  [data-heed="confirm-cta"]      — confirm button on Screen 3
+  [data-heed="back-btn"]         — back button on Screen 3
+  [data-heed="flow-complete"]    — success element on Screen 4
+
+What you will learn building this
+----------------------------------
+- How screen transitions work in a SPA (Next.js router) and why Heed needs
+  a MutationObserver + popstate listener to re-attach on route change
+- Why stable selectors matter and what breaks when class names are hashed
+- How to think about which screens are "active" for Heed vs which are noise
+- What a real partner's staging walkthrough actually requires from you:
+  mapping screens, writing selectors, identifying hesitation targets
+- How to manually trigger every signal type and confirm it fires
+
+Waterfall position
+------------------
+This is built FIRST. Nothing in Repo 2, 3, or 4 can be built until this
+exists and renders correctly on a 390px viewport with all data-heed selectors
+in place. Repo 2 writes its config against these selectors. Repo 3 writes its
+Playwright scripts against these selectors. Get the selectors wrong here and
+you debug it in every downstream repo.
+
+Completion criteria
+-------------------
+- All 4 screens render at 390px with no desktop layout
+- All 7 data-heed selectors present and inspectable in DevTools
+- Screen transitions work via Next.js routing (not component state)
+- No external network calls of any kind
+- Loads cleanly in a Playwright-controlled Chromium instance
