@@ -1,0 +1,147 @@
+HEED — SYNTHETIC HARNESS OVERVIEW
+===================================
+What this system is
+--------------------
+Four separate repositories that together constitute a complete behavioral
+intervention system built and operated entirely by Heed — before any real
+partner is involved. The system proves the thesis, generates labeled training
+data, and prepares every team member to answer technical questions on a pilot
+call with specificity and without hedging.
+
+When a partner says yes to a pilot, the only thing that changes is:
+  - Repo 1 (dummy platform) is replaced by their staging environment URL
+  - Repo 2 (SDK) is deployed on their URL instead of localhost
+  - Repo 3 (agents) is replaced by real user sessions
+  - Repo 4 (eval) keeps running on real session data
+
+Everything else is already built and understood.
+
+The four repositories
+----------------------
+  Repo 1 — heed-demo-platform
+    What: mobile-only wallet flow web app, no backend, no external APIs
+    Why: gives Heed a surface to instrument and agents a flow to run through
+    Teaches: screen mapping, selector writing, SPA routing behavior
+
+  Repo 2 — heed-sdk
+    What: the actual Heed product — script tag, signal capture, inference,
+          response overlay, config layer, logging
+    Why: this is what gets deployed on a real partner platform
+    Teaches: browser event APIs, neural network fundamentals, postMessage,
+             config-as-contract architecture
+
+  Repo 3 — heed-agents
+    What: Playwright scripts simulating three user personas at mobile viewport
+    Why: generates session volume without real users
+    Teaches: browser automation, behavioral variance, selector stability,
+             touch event simulation
+
+  Repo 4 — heed-eval
+    What: session ingestion, metric computation, Laminar integration,
+          annotation workflow, weight update cycle
+    Why: turns session data into inference improvement
+    Teaches: eval methodology, classification metrics, the weight feedback loop
+
+The contract (read this before writing any code)
+-------------------------------------------------
+The contract is the set of data-heed selectors defined in Repo 1 and
+consumed by Repos 2 and 3. It is established before any code is written
+and does not change once set.
+
+  [data-heed="amount-input"]      Screen 2 — amount entry field
+  [data-heed="fee-row"]           Screen 2 — fee disclosure row
+  [data-heed="min-received-row"]  Screen 2 — minimum received row
+  [data-heed="proceed-cta"]       Screen 2 — proceed button
+  [data-heed="confirm-cta"]       Screen 3 — confirm button
+  [data-heed="back-btn"]          Screen 3 — back button
+  [data-heed="flow-complete"]     Screen 4 — success element
+
+Repo 1 owns the existence of these elements.
+Repo 2 targets them in its config JSON (demo-platform.json).
+Repo 3 interacts with them in its Playwright scripts.
+Renaming one selector requires updating all three repos. Do not rename them.
+
+Waterfall sequence
+------------------
+The repos are built in strict dependency order. Nothing downstream is
+started until the upstream repo passes its completion criteria.
+
+WEEK 1 — Repo 1
+  Build all 4 screens at 390px viewport.
+  Confirm all 7 data-heed selectors are present in DevTools.
+  Confirm screen transitions work via Next.js routing.
+  Confirm no external network calls.
+  Confirm Playwright can load the app in iPhone 14 emulation.
+  → Gate: manual walkthrough of the full flow with no errors.
+
+WEEK 2 — Repo 2
+  Build signal capture layer (touch events only) and confirm each of the
+  4 signal types fires manually on the dummy platform.
+  Build inference layer and confirm forward pass produces output.
+  Build response overlay and confirm it renders on 390px without blocking
+  the underlying UI.
+  Build config layer and validate demo-platform.json against schema.
+  Build logging layer and confirm all event types appear in console.
+  → Gate: manual signal test sequence passes for all 4 signal types.
+
+WEEK 3 — Repo 3
+  Build Confident persona, run one session in headed mode, confirm logs.
+  Build Hesitant persona, confirm additional signal types appear.
+  Build Abandoning persona, confirm flow_abandoned fires correctly.
+  Add randomization to all personas.
+  Run 100 sessions headlessly overnight. Confirm output NDJSON is valid.
+  → Gate: 100 sessions complete without errors, output file is valid JSON.
+
+WEEK 4 — Repo 4
+  Build metrics.js, run against 100-session output, review numbers.
+  Set up Laminar, push sessions as traces, confirm span structure is correct.
+  Annotate 20 abandoning sessions.
+  Complete one weight update cycle end to end.
+  → Gate: updated weights are in demo-platform.json and a new agent batch
+          shows stable or improved classification_accuracy.
+
+How the repos connect at runtime
+---------------------------------
+  1. Repo 1 runs on localhost:3000 (or Vercel URL)
+  2. Repo 2's sdk.js is loaded by Repo 1 via a script tag in its HTML head
+     pointing at localhost (dev) or a CDN URL (production)
+  3. Repo 2 fetches demo-platform.json from its own /config directory
+     (served as a static file from localhost or CDN)
+  4. Repo 3's Playwright scripts open a browser pointed at Repo 1's URL
+     and interact with the DOM. Heed is already loaded by Repo 1.
+  5. Repo 3 captures Heed's console logs via Playwright's page.on('console')
+     and writes them to output/sessions-<timestamp>.ndjson
+  6. Repo 4 reads that NDJSON file, computes metrics, pushes to Laminar,
+     and writes updated weights back to Repo 2's config JSON
+
+At no point does any repo make an external API call during a session
+except the weight push at session end (Repo 2 → CDN or localhost endpoint).
+Everything else is local.
+
+What this system demonstrates to a partner
+-------------------------------------------
+When you sit down with a partner platform, you can show:
+  - The exact ask you have of them (URL, 30 minutes, selectors, copy, metric)
+    because you have done every step of that process yourself on Repo 1
+  - The signal chain working end to end (Repo 2 logs on their staging env)
+    in a single session, manually triggered
+  - Session data showing what hesitation looks like in aggregate (Repo 4)
+    and what the inference layer does with it
+  - A weight update cycle that has already run, meaning the net is not at
+    cold-start weights but at weights informed by real session data
+
+That is the difference between a thesis and a system. This harness is what
+turns the thesis into a system before the first paying pilot.
+
+Scope boundaries (what this system is NOT)
+-------------------------------------------
+  - Not a dashboard. No UI for partners to configure Heed. That is post-pilot.
+  - Not a production CDN deployment. localhost is fine for the harness.
+  - Not a vision model pipeline. Video/VLM instrumentation is a future repo.
+  - Not a multi-partner system. One config, one platform, one partner at a time.
+  - Not federated learning. Per-partner weights, no cross-partner aggregation.
+  - Not a real-time backend. Weight push is the only outbound call.
+
+If a task or feature implies any of the above, it is out of scope for this
+build. Note it and defer it. The harness must be completed and understood
+before scope expands.

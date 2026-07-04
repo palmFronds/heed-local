@@ -1,0 +1,185 @@
+REPO 4 — heed-eval
+===================
+What this is
+------------
+The logging, evaluation, and weight improvement pipeline. It consumes the
+session output from Repo 3, surfaces signal distribution and inference
+performance, provides a mechanism for annotating and reviewing sessions,
+and feeds improved weights back into Repo 2's config.
+
+This is where you find out if the inference layer is actually working —
+whether the intent classifications it produces correspond to the outcomes
+sessions produce, and whether the responses it fires are firing at the right
+moments. Without this, you are running sessions blind.
+
+Why it exists
+-------------
+Running 100 Playwright sessions generates data. This repo is what turns that
+data into something you can reason about and act on. It answers:
+  - Is touch_hesitation on the confirm CTA actually predictive of abandonment?
+  - Is the confidence threshold (0.65) too high, causing Heed to miss windows?
+  - Are responses firing on the right intent class, or is the net misclassifying?
+  - After weight updates, are subsequent sessions classifying more accurately?
+
+These are questions you will be asked by a partner's product lead on a pilot
+debrief call. This repo is how you have answers that are grounded in data
+rather than intuition.
+
+What you will learn building this
+----------------------------------
+- How to work with structured log data: parsing, aggregating, querying
+  session JSON without a database
+- What "eval" means in an ML context: not unit testing, but measuring
+  whether a model's outputs correspond to ground truth labels
+- How to compute basic classification metrics: precision, recall, and why
+  they matter more than raw accuracy for imbalanced outcome distributions
+- How the weight update cycle actually works end to end: session ends →
+  outcome label assigned → weights nudged → new weights pushed → next
+  session starts with updated weights
+- What Laminar (lmnr.ai) provides and why it is worth using instead of
+  building this infrastructure from scratch
+
+Stack
+-----
+- Node.js — session ingestion, metric computation, weight update trigger
+- Laminar (lmnr.ai) — trace storage, dataset annotation, eval visualization
+  Free tier is sufficient for pilot-scale session volume.
+  Self-hostable if data residency becomes a concern later.
+- Simple HTML/JS dashboard (optional, local only) — session browser,
+  signal frequency charts, weight history. Build this only if the raw
+  Laminar UI is insufficient. Do not over-invest here.
+
+What Laminar provides (and what you do not need to build)
+----------------------------------------------------------
+Laminar is an open-source LLM/agent observability platform (YC S24).
+It was designed for AI agent pipelines but its primitives map directly
+to what Heed needs:
+
+  Traces       — a complete record of one session (all events in sequence)
+                 Maps directly to one entry in Repo 3's session NDJSON output
+  Spans        — individual events within a trace (signal_detected, inference_run,
+                 response_fired, etc.)
+                 Maps directly to Heed's log entry format
+  Datasets     — collections of labeled examples for eval
+                 Maps to: sessions labeled complete/abandoned
+  Evals        — runs a scoring function over a dataset
+                 Maps to: for each session, did the inference layer classify
+                 the dominant signal correctly given the known outcome?
+  Annotations  — human labels on individual spans
+                 Maps to: you reviewing sessions and marking whether a
+                 response that fired was appropriate for the hesitation shown
+
+You use Laminar's SDK to push sessions from Repo 3's output into Laminar's
+trace store. You annotate a sample of sessions. You run evals. You look at
+where the net is misclassifying and use that to adjust cold-start weights
+or confidence thresholds in Repo 2's config.
+
+Session ingestion pipeline
+--------------------------
+A Node.js script reads Repo 3's NDJSON output and pushes each session to
+Laminar as a trace:
+
+  1. Read output/sessions-<timestamp>.ndjson line by line
+  2. For each session: create a Laminar trace with sessionId as trace ID
+  3. For each event in session.events: create a span within the trace
+     - span name = event.event (signal_detected, inference_run, etc.)
+     - span attributes = event.data
+  4. Set trace outcome label = session.outcome (complete / abandoned)
+  5. Push to Laminar via SDK
+
+This script runs after each batch of agent sessions. It does not need to
+run in real time.
+
+Metrics computed locally (before Laminar)
+-----------------------------------------
+A separate metrics.js script computes these from the raw NDJSON before
+pushing to Laminar. These are the numbers you read first to know if
+something is badly wrong before doing deeper analysis:
+
+  signal_frequency
+    For each signal type, how many times did it fire across all sessions?
+    Broken down by persona and outcome.
+    What to look for: back_intent should appear almost exclusively in
+    abandoning sessions. If it appears in 40% of confident sessions,
+    something is wrong with the Playwright script or the signal listener.
+
+  response_fire_rate
+    What percentage of sessions had at least one response fire?
+    Broken down by outcome.
+    What to look for: response_fire_rate should be higher in hesitant and
+    abandoning sessions than confident sessions. If it is the same across
+    all three, the confidence threshold may be too low.
+
+  classification_accuracy
+    For each session where a response fired, was the intent class that fired
+    consistent with the session outcome?
+    Example: if price_doubt response fired and the session was abandoned
+    after a scroll_reversal on the fee row, that is a correct classification.
+    If confusion response fired on a session where the user only hit back
+    immediately, that is a misclassification.
+    This is a rough proxy — ground truth annotation in Laminar is more
+    precise — but it catches gross failures fast.
+
+  weight_delta_history
+    For each session batch, what did the weight update change?
+    Store W1 and W2 matrices before and after each batch.
+    What to look for: weights should be moving in a consistent direction
+    across sessions of the same type. If they are oscillating wildly,
+    the learning rate is too high.
+
+Weight update cycle
+-------------------
+This is the feedback loop that makes the inference layer improve over time.
+
+  After each batch of agent sessions (Repo 3):
+  1. metrics.js computes classification_accuracy for the batch
+  2. If accuracy is above baseline (>60%), existing weights are kept
+  3. If accuracy is below baseline, weights from the lowest-performing
+     sessions are averaged and used to nudge the config weights
+  4. Updated W1, b1, W2, b2 matrices are written to
+     Repo 2's config/demo-platform.json under inference.weights
+  5. Next Repo 3 run starts with updated weights
+
+In V0, this update is manual: you run metrics.js, review the output, decide
+whether to push updated weights, and edit the config JSON. The weightPushUrl
+in config (a Cloudflare Worker endpoint) is the production version of this
+manual step — it happens automatically at session end in a live deployment.
+Building the manual version first means you understand what the automatic
+version is doing before you automate it.
+
+Annotation workflow (Laminar)
+------------------------------
+After ingesting a batch of sessions into Laminar:
+  1. Filter traces by outcome = abandoned
+  2. For each trace, open the span sequence and read the event chain
+  3. For each response_fired span, add a Laminar annotation:
+     - "appropriate" — the response matched the hesitation shown
+     - "misfire" — the response fired but the hesitation signal was weak
+     - "missed" — a clear hesitation occurred but no response fired
+  4. Export annotated dataset from Laminar
+  5. Use misfires and misses to adjust confidence threshold or cold-start
+     weights in Repo 2's config
+
+You do not need to annotate every session. A 20% sample of abandoning
+sessions per batch is sufficient to catch systematic problems.
+
+Waterfall position
+------------------
+Built FOURTH, after at least one complete agent run from Repo 3 has produced
+a valid NDJSON output file. You cannot build the ingestion pipeline without
+data to ingest.
+
+Start with metrics.js (local computation, no Laminar dependency) before
+setting up the Laminar integration. Get the numbers first. Understand what
+they mean. Then add the trace storage and annotation layer.
+
+Completion criteria
+-------------------
+- metrics.js produces signal_frequency, response_fire_rate, and
+  classification_accuracy reports for a 100-session batch
+- Sessions are ingested into Laminar as traces with correct span structure
+- At least one annotation pass completed on a 20-session sample
+- Weight delta history is being tracked across batches
+- At least one weight update cycle completed end to end:
+  metrics reviewed → weights updated in config → new agent batch run →
+  metrics show improvement or stable performance

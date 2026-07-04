@@ -1,0 +1,177 @@
+REPO 3 — heed-agents
+=====================
+What this is
+------------
+A set of Playwright scripts that simulate real users moving through the dummy
+platform (Repo 1) with varied behavioral patterns. Each script is a "persona"
+— a programmatic user with a specific hesitation profile. Agents run headlessly
+in a mobile-emulated Chromium browser, interacting with the dummy platform's
+DOM exactly as a real user's finger would, producing touch events that Heed's
+signal capture layer (Repo 2) picks up and classifies.
+
+The output of running these agents is a corpus of labeled behavioral sessions:
+each session ends with a known outcome (completed or abandoned) and a log of
+every signal detected, every inference run, and every response fired. That
+corpus is what Repo 4 consumes.
+
+Why it exists
+-------------
+You cannot generate meaningful signal volume by manually tapping through
+a flow. You need hundreds of sessions to see patterns, test inference weights,
+and build anything resembling training data. Agents give you that volume
+without a single real user.
+
+More importantly: building these agents forces you to understand the flow
+from the outside in. You have to know exactly which selectors to target,
+which interactions produce which events, and what a "hesitant" user actually
+does differently from a "confident" one at the DOM level. That understanding
+is what you take into a partner co-design session.
+
+What you will learn building this
+----------------------------------
+- How Playwright works: browser automation, selector targeting, touch event
+  simulation, viewport configuration, and headless vs headed mode
+- How to simulate mobile touch interactions in a desktop browser context
+  (Playwright device emulation handles this — iPhone 14 profile)
+- What "behavioral variance" means in code: how to inject randomness into
+  agent behavior so sessions are not identical, and why identical sessions
+  produce useless training data
+- How to structure a test runner that produces machine-readable session
+  output (JSON) rather than just pass/fail assertions
+- The difference between a selector that survives a code change and one that
+  breaks — because your agents will break when selectors change, and you
+  will learn to write stable ones
+
+Stack
+-----
+- Playwright (Node.js) — browser automation, device emulation, touch events
+- Node.js — script runner, session logging, output serialization
+- No test framework (Jest, Mocha) — these are not tests, they are data
+  generators. A simple node script per persona is sufficient.
+- Output: newline-delimited JSON files, one session per line, consumed by
+  Repo 4
+
+Device configuration (applies to all personas)
+-----------------------------------------------
+All agents run with Playwright's iPhone 14 device profile:
+  viewport: { width: 390, height: 844 }
+  deviceScaleFactor: 3
+  isMobile: true
+  hasTouch: true
+  userAgent: iPhone 14 Safari UA string
+
+This ensures touch events fire correctly and the dummy platform renders
+its mobile-only layout rather than the desktop gate.
+
+The three personas
+------------------
+
+Persona 1 — Confident
+  Profile: user who completes the flow without meaningful hesitation.
+  Produces minimal signal. This is the baseline / positive outcome session.
+  Behavior:
+    - Navigates Screen 1 → taps Swap CTA immediately (no dwell)
+    - On Screen 2: types an amount within 2 seconds, does not blur without
+      completing, does not scroll reversal. Taps Proceed.
+    - On Screen 3: pauses 1-2 seconds (randomized), taps Confirm.
+    - Reaches Screen 4 (success). flowComplete = true.
+  Randomization:
+    - Pause before Confirm: random between 500ms and 2000ms
+    - Typing speed: random between 80ms and 200ms per character
+  Expected Heed output: 0-1 signals detected, no response fired (confidence
+                        below threshold), flow_complete logged.
+
+Persona 2 — Hesitant
+  Profile: user who exhibits clear hesitation signals but ultimately completes
+  the flow. The most valuable persona for training — positive outcome with
+  signal present.
+  Behavior:
+    - Screen 2: taps into amount field, pauses 3-5 seconds before typing
+      (touch_hesitation on amount-input). Types amount. Scrolls down to fee
+      row, pauses, scrolls back up (scroll_reversal). Taps Proceed.
+    - Screen 3: holds finger on Confirm button for 1.5-3 seconds before
+      lifting (touch_hesitation on confirm-cta). Completes.
+  Randomization:
+    - Hesitation duration: random between defined min/max per signal type
+    - Whether scroll reversal fires: 70% probability (not every session)
+    - Number of times blur_incomplete fires: 0-2 times on amount-input
+  Expected Heed output: 2-4 signals detected, 1-2 responses fired,
+                        flow_complete logged.
+
+Persona 3 — Abandoning
+  Profile: user who hesitates and does not complete the flow. Negative outcome
+  session. Critical for the inference layer to learn what abandonment looks
+  like.
+  Behavior variant A — abandons at Screen 2:
+    - Taps into amount field, blurs without completing (blur_incomplete).
+    - Scrolls down to fee row, scrolls back up (scroll_reversal).
+    - Taps back button (back_intent).
+    - Flow ends at Screen 1. flowComplete = false.
+  Behavior variant B — abandons at Screen 3:
+    - Completes Screen 2 normally.
+    - On Screen 3: holds Confirm for 2-4 seconds, does not lift (hesitation).
+    - Taps back button (back_intent).
+    - Flow ends at Screen 2. flowComplete = false.
+  Randomization:
+    - Which variant: 50/50 probability per session
+    - Hesitation durations: randomized within ranges
+  Expected Heed output: 2-4 signals detected, 1-2 responses fired,
+                        flow_abandoned logged.
+
+Session output format
+---------------------
+Each agent run produces one session JSON object, written to output/:
+{
+  "sessionId": "<uuid>",
+  "persona": "confident" | "hesitant" | "abandoning",
+  "outcome": "complete" | "abandoned",
+  "startTs": <epoch_ms>,
+  "endTs": <epoch_ms>,
+  "events": [
+    // raw Heed console log entries captured from the browser
+    { "ts": ..., "sessionId": ..., "partnerId": ..., "event": ..., "data": ... }
+  ]
+}
+
+Heed's console logs are captured by intercepting page.on('console') in
+Playwright. Every line prefixed '[heed]' is parsed and added to the events
+array. This is the only data capture mechanism — no additional instrumentation,
+no separate logging pipeline. Heed's own logging layer IS the data source.
+
+Running volume
+--------------
+A single npm script runs all three personas in sequence, N times each:
+  node run.js --persona=all --sessions=100
+
+Default ratio: 20% confident, 50% hesitant, 30% abandoning.
+This ratio reflects realistic user population distribution and prevents
+the training corpus from being dominated by any single outcome type.
+
+Sessions run serially by default (one at a time) to avoid race conditions
+on the config weight push endpoint. Parallelism can be added later once
+the weight push is properly queued.
+
+Output files:
+  output/sessions-<timestamp>.ndjson — one JSON object per line
+  output/summary-<timestamp>.json    — session count, outcome breakdown,
+                                       signal frequency distribution
+
+Waterfall position
+------------------
+Built THIRD, after Repo 1 and Repo 2 are both working and the manual signal
+test sequence (defined in Repo 2 spec) has passed. Agents cannot generate
+meaningful data if Heed's signal capture or inference layer has bugs.
+
+The first thing you run is one Confident session in headed mode (visible
+browser window) to confirm the agent navigates the flow correctly and Heed
+logs appear in sequence. Only after that do you run volume headlessly.
+
+Completion criteria
+-------------------
+- All three personas complete their flows without Playwright errors
+- Heed console logs are captured correctly for all session types
+- Session JSON output is valid and parseable by Repo 4
+- 100 sessions can run overnight without crashing
+- Signal frequency distribution in summary JSON looks plausible:
+  hesitant sessions show more signals than confident, abandoning sessions
+  show back_intent firing in the final event of their event array

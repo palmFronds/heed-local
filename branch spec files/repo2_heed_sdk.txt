@@ -1,0 +1,236 @@
+REPO 2 — heed-sdk
+==================
+What this is
+------------
+The actual Heed product. A vanilla JavaScript file that partners embed via a
+single script tag. It instruments behavioral hesitation signals on the host
+page, classifies intent through a small neural network running entirely
+client-side, and fires platform-configured responses as a fixed overlay — 
+without touching the host DOM, accessing user data, or requiring any backend
+integration.
+
+This repo is built against the dummy platform (Repo 1) but is not dependent
+on it. The SDK is generic. The config makes it specific to a platform.
+When a real pilot arrives, only the config changes. The SDK ships unchanged.
+
+Why it exists
+-------------
+This is the thing you are selling. Everything else in this system exists to
+prove that this works, generate data to improve it, and prepare you to deploy
+it. Building it on the dummy platform means you have already done the
+integration work before you sit down with a partner. You know what breaks,
+you know what to ask for, and you can answer technical questions from their
+engineering team without hedging.
+
+What you will learn building this
+----------------------------------
+- How browser event listeners work at a low level: touchstart, touchend,
+  blur, scroll, popstate — what they fire, when, and what data they carry
+- How a feedforward neural network actually works: forward pass, activation
+  functions (ReLU, softmax), weight matrices, backpropagation at a conceptual
+  level, and why the output is a probability distribution not a hard label
+- Why inference has to run client-side (latency — the hesitation window is
+  seconds, a server round-trip kills it)
+- How postMessage works and why it is the only safe communication channel
+  between a sandboxed iframe and a host page
+- How a config-as-contract works: why the SDK is generic and the config is
+  what makes it specific, and why this is the right architecture for a
+  multi-partner product
+- What "no PII" actually means in implementation terms — what you explicitly
+  do not read, do not store, do not transmit
+
+Stack
+-----
+- Vanilla JavaScript — no framework, no bundler, no dependencies
+- brain.js for the neural network (lightweight, browser-compatible)
+- Single file output: sdk.js (what partners embed)
+- Config: JSON file hosted on CDN (or localhost during development)
+- No backend. No database. No auth. No external API calls during a session.
+
+File structure
+--------------
+/sdk
+  sdk.js          — entry point, orchestrates all layers
+  signal.js       — touch event listeners, payload construction
+  inference.js    — 2-layer feedforward net, forward pass, weight update
+  response.js     — overlay injection, response rendering, clampToViewport
+  log.js          — console logging, session event schema
+
+/config
+  schema.json     — canonical config schema, every field documented
+  demo-platform.json — config for Repo 1 (the dummy platform)
+
+/admin
+  weights.js      — cold-start weight initialization, weight serialization
+
+Signal capture layer (signal.js)
+---------------------------------
+Mobile-only signal set. No mouse events. No hover. Touch only.
+
+Four signals, each producing a normalized event payload:
+  { type, targetSelector, bbox, timestamp }
+  No field values. No user identity. Geometry and timing only.
+
+Signal 1 — touch hesitation (replaces desktop dwell)
+  touchstart fires on a target element. A timer starts. If touchend fires
+  within 300ms, it is a normal tap. If touchend does not fire within 300ms
+  (configurable threshold, default 800ms), it is a held touch — hesitation.
+  Payload: type="touch_hesitation", bbox of the element, duration held.
+
+Signal 2 — blur without completion
+  An input field receives focus (touchstart on input). The field loses focus
+  (blur event) without the value having changed from empty. The user tapped
+  into a field and left without entering anything.
+  Payload: type="blur_incomplete", bbox of the input.
+
+Signal 3 — scroll reversal
+  User scrolls down past a threshold (configurable, default 40% of viewport
+  height), then scrolls back up. Indicates the user reviewed content and
+  retreated rather than proceeding.
+  Payload: type="scroll_reversal", scroll depth at reversal point.
+
+Signal 4 — back intent
+  popstate event fires (browser back or swipe-back gesture) while
+  flowComplete is false. User is leaving the flow before completing it.
+  Payload: type="back_intent", current pathname.
+
+All four signals are emitted to the inference layer via an internal event
+bus. No signal ever leaves the browser except for the weight push at session
+end (a single POST containing only the updated weight array).
+
+Inference layer (inference.js)
+-------------------------------
+A 2-layer feedforward neural network. This is the piece that makes Heed
+non-rule-based. A lookup table would encode a human's assumption about what
+signal maps to what intent. The net learns that mapping from session outcomes.
+
+Architecture:
+  Input layer:  4 nodes — one per signal type
+                [normalizedTouchHesitation, blurFlag,
+                 normalizedReversalCount, backFlag]
+                All values normalized to [0, 1]
+  Hidden layer: 4 nodes, ReLU activation
+  Output layer: 4 nodes, softmax activation
+                Intent classes: confusion, price_doubt, trust_gap,
+                                flow_friction
+
+Forward pass:
+  input vector → multiply by W1 weight matrix → add b1 bias → ReLU →
+  multiply by W2 → add b2 → softmax → output: [confidence per class]
+  The class with the highest confidence is the predicted intent.
+  If max confidence < threshold (default 0.65), no response fires.
+
+Weight update:
+  Fires ONCE at session end, not per-event.
+  Outcome label: 1 if flowComplete === true, 0 if abandoned.
+  Learning rate: 0.01 (low because sessions yield 1-3 labeled examples).
+  Updated weights are pushed to CDN via weightPushUrl in config.
+
+Cold-start weights (admin/weights.js):
+  Structured guesses based on domain knowledge:
+  - touch_hesitation maps primarily to confusion
+  - blur_incomplete maps primarily to flow_friction
+  - scroll_reversal maps primarily to price_doubt
+  - back_intent maps primarily to trust_gap
+  These are not random. They are informed starting points that will be
+  corrected by actual session data.
+
+Why a net and not a lookup table:
+  Signals do not map to intents in isolation. Scroll reversal alone might be
+  casual browsing. Scroll reversal plus blur_incomplete on the fee row is
+  price hesitation. The hidden layer learns these combinations. A lookup
+  table cannot represent non-linear combinations. This is the architectural
+  claim that separates Heed from rule-based tools — it must be implemented
+  correctly, not approximated.
+
+Response layer (response.js)
+-----------------------------
+A single div injected into document.body at init:
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 2147483647; overflow: hidden;
+
+Response elements rendered inside get pointer-events: auto.
+The host DOM is untouched. The overlay sits on top. Removing it is one line.
+
+Positioning: uses bbox from the signal payload. clampToViewport() ensures
+the response stays within iOS safe area insets on mobile.
+
+V0 response types:
+  tooltip         — contextual text anchored to the hesitation element
+  nudge_copy      — a brief reassurance or clarification
+  discount_offer  — fires a postMessage to the host with a CTA payload.
+                    Heed does not fulfill the offer. That is the platform's
+                    system. Heed only signals that the window exists.
+  social_proof    — brief trust signal relevant to the hesitation screen
+
+Config layer (config/schema.json + demo-platform.json)
+-------------------------------------------------------
+The config is what makes the generic SDK specific to a platform.
+Partners provide inputs. You translate inputs into config. They never
+edit JSON directly.
+
+Key fields:
+  signals.*.targets       — data-heed selectors for elements to watch
+  inference.confidenceThreshold — fire threshold (default 0.65)
+  inference.weights       — {W1, b1, W2, b2} per-partner weight matrices
+  responses.*             — per-intent-class copy and response type
+  activeScreens           — pathnames where SDK is active (silent elsewhere)
+  completionSelector      — selector or route that marks flow success
+  weightPushUrl           — endpoint for session-end weight persistence
+  logLevel                — "verbose" in development, "silent" in production
+
+The demo-platform.json config uses the data-heed selectors from Repo 1.
+This is where the contract between Repo 1 and Repo 2 is formalized.
+
+Logging layer (log.js)
+-----------------------
+Every entry: { ts, sessionId, partnerId, event, data }
+Event types: signal_detected, inference_run, response_fired,
+             response_dismissed, flow_complete, flow_abandoned
+
+All logs via: console.log('[heed]', JSON.stringify(entry))
+Async POST stub is commented out. Schema does not change when it activates.
+Persistence is additive — the console log IS the log format.
+
+SPA safety (MutationObserver + popstate)
+-----------------------------------------
+The dummy platform is a Next.js SPA. Route changes do not reload the page —
+a subtree swaps while the shell stays mounted. Heed must re-attach listeners
+when the route changes, but must not double-attach on the same route.
+
+Strategy:
+  MutationObserver on document.body — fires on any DOM mutation
+  popstate listener — fires on programmatic route changes
+  Both paths gate on: has window.location.pathname changed since last attach?
+  If yes, run attachListeners(config) again.
+  Track instrumented elements in a WeakSet — idempotent re-attachment,
+  no double-firing regardless of observer frequency.
+
+This is not a detail. This is what makes the SDK work on real SPA platforms.
+Understanding why it is necessary is part of what this build teaches you.
+
+Waterfall position
+------------------
+Built SECOND, after Repo 1 exists and all data-heed selectors are confirmed.
+The config (demo-platform.json) is written against those selectors.
+The signal layer is tested manually on the dummy platform before Repo 3
+runs automated sessions through it.
+
+Manual testing sequence (before Repo 3):
+  1. Load dummy platform with script tag in browser DevTools, mobile viewport
+  2. Trigger touch hesitation: press and hold the proceed CTA
+  3. Trigger blur incomplete: tap into amount field, tap away without typing
+  4. Trigger scroll reversal: scroll down past fee row, scroll back up
+  5. Trigger back intent: tap back button before reaching success screen
+  6. Confirm log sequence: signal_detected → inference_run → response_fired
+  7. Confirm overlay renders above platform UI without blocking interaction
+  8. Confirm no logs fire on Screen 1 (not in activeScreens)
+
+Completion criteria
+-------------------
+- All 4 signal types fire and produce correct log entries on the dummy platform
+- Inference forward pass produces a confidence score and intent class
+- Response overlay renders correctly on 390px viewport with iOS safe area
+- Weight update fires once at session end and posts to weightPushUrl
+- Config validation hard-fails on invalid schema
+- No PII in any payload — verified by reading every outbound call
