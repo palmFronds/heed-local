@@ -86,6 +86,8 @@ exists to prove it's built right.
 | Standalone local static-HTML test harness (not dependent on live Branch 1) | Branch 1 isn't gate-passed yet; the 7 selectors are locked in CONTRACT.md independent of Branch 1's build status, so signal/config work can proceed and be tested now | — Pending |
 | Real local weight-push receiver that persists and reloads weights | Closes the actual learning loop across sessions (not just a logged stub) — teaches weight serialization and cold-start-vs-learned-weight handling, matching the "learning build" goal | — Pending |
 | Waterfall rule relaxed to allow Branch 2 planning before Branch 1's gate passes | Deliberate project-owner override recorded in CLAUDE.md | ✓ Good |
+| brain.js used for training/weight-export only; forward pass in `sdk.js` is hand-written (reads exported W1/b1/W2/b2 arrays) | Satisfies PROJECT.md's "explicit forward pass, not black-box" requirement; also avoids shipping brain.js's ~1MB unminified browser bundle (with unused RNN/LSTM/conv code) in a single-file SDK | ✓ Good |
+| esbuild used as a dev-only build tool to produce the single flat `sdk.js`; partner integration remains zero-build, one `<script>` tag | Reconciles CLAUDE.md's "no bundler" rule (meant for the SDK/partner surface) with the mechanical reality that combining hand-written code + exported weights into one file needs some build step for the Heed team | ✓ Good |
 
 ---
 *Last updated: 2026-07-09 after initialization*
