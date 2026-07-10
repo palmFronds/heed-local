@@ -66,9 +66,8 @@ API, a production CDN deployment, federated learning, a vision model
 pipeline, or a multi-partner system — stop. Note it and defer it.
 The harness must be complete and verified before scope expands.
 
-**Waterfall is absolute.** Do not begin work on a branch until the
-upstream branch's gate has passed. If asked to work on Branch 2 before
-Branch 1's gate has passed, decline and say why.
+Branches are built in waterfall order by default but the project owner
+can override this deliberately at any time.
 
 ---
 
