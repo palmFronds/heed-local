@@ -1,0 +1,28 @@
+{
+  "name": "heed-local",
+  "version": "1.0.0",
+  "description": "A self-contained synthetic harness for Heed - the real-time behavioral intervention control layer. Built before any pilot partner is involved.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest run",
+    "build": "esbuild src/index.js --bundle --format=iife --global-name=Heed --outfile=dist/sdk.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/palmFronds/heed-local.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/palmFronds/heed-local/issues"
+  },
+  "homepage": "https://github.com/palmFronds/heed-local#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "esbuild": "^0.28.1",
+    "happy-dom": "^20.10.6",
+    "vitest": "^4.1.10"
+  }
+}
