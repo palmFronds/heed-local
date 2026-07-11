@@ -76,37 +76,35 @@ Explicitly excluded. Documented to prevent scope creep.
 
 ## Traceability
 
-Populated during roadmap creation (next step).
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CFG-01 | TBD | Pending |
-| CFG-02 | TBD | Pending |
-| BUS-01 | TBD | Pending |
-| SIG-01 | TBD | Pending |
-| SIG-02 | TBD | Pending |
-| SIG-03 | TBD | Pending |
-| SIG-04 | TBD | Pending |
-| SIG-05 | TBD | Pending |
-| SIG-06 | TBD | Pending |
-| INF-01 | TBD | Pending |
-| INF-02 | TBD | Pending |
-| INF-03 | TBD | Pending |
-| INF-04 | TBD | Pending |
-| INF-05 | TBD | Pending |
-| RESP-01 | TBD | Pending |
-| RESP-02 | TBD | Pending |
-| RESP-03 | TBD | Pending |
-| LOG-01 | TBD | Pending |
-| TEST-01 | TBD | Pending |
-| WEIGHT-01 | TBD | Pending |
-| INTEG-01 | TBD | Pending |
+| CFG-01 | Phase 1 | Pending |
+| CFG-02 | Phase 1 | Pending |
+| BUS-01 | Phase 1 | Pending |
+| TEST-01 | Phase 1 | Pending |
+| SIG-01 | Phase 2 | Pending |
+| SIG-02 | Phase 2 | Pending |
+| SIG-03 | Phase 2 | Pending |
+| SIG-04 | Phase 2 | Pending |
+| SIG-05 | Phase 2 | Pending |
+| SIG-06 | Phase 2 | Pending |
+| INF-01 | Phase 3 | Pending |
+| INF-02 | Phase 3 | Pending |
+| INF-03 | Phase 3 | Pending |
+| INF-04 | Phase 3 | Pending |
+| INF-05 | Phase 3 | Pending |
+| RESP-01 | Phase 4 | Pending |
+| RESP-02 | Phase 4 | Pending |
+| RESP-03 | Phase 4 | Pending |
+| LOG-01 | Phase 4 | Pending |
+| WEIGHT-01 | Phase 5 | Pending |
+| INTEG-01 | Phase 6 | Pending |
 
 **Coverage:**
 - v1 requirements: 21 total
-- Mapped to phases: 0
-- Unmapped: 21 ⚠️ (roadmap not yet created)
+- Mapped to phases: 21
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-07-11*
-*Last updated: 2026-07-11 after initial definition*
+*Last updated: 2026-07-11 after roadmap creation — traceability mapped, 100% coverage*
