@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["platformId", "selectors", "completionSelector"],
+  "properties": {
+    "platformId": { "type": "string" },
+    "completionSelector": { "type": "string" },
+    "selectors": {
+      "type": "object",
+      "required": [
+        "amountInput",
+        "feeRow",
+        "minReceivedRow",
+        "proceedCta",
+        "confirmCta",
+        "backBtn",
+        "flowComplete"
+      ],
+      "properties": {
+        "amountInput": { "type": "string" },
+        "feeRow": { "type": "string" },
+        "minReceivedRow": { "type": "string" },
+        "proceedCta": { "type": "string" },
+        "confirmCta": { "type": "string" },
+        "backBtn": { "type": "string" },
+        "flowComplete": { "type": "string" }
+      }
+    }
+  }
+}

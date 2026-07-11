@@ -1,0 +1,13 @@
+{
+  "platformId": "demo-platform",
+  "completionSelector": "[data-heed=\"flow-complete\"]",
+  "selectors": {
+    "amountInput": "[data-heed=\"amount-input\"]",
+    "feeRow": "[data-heed=\"fee-row\"]",
+    "minReceivedRow": "[data-heed=\"min-received-row\"]",
+    "proceedCta": "[data-heed=\"proceed-cta\"]",
+    "confirmCta": "[data-heed=\"confirm-cta\"]",
+    "backBtn": "[data-heed=\"back-btn\"]",
+    "flowComplete": "[data-heed=\"flow-complete\"]"
+  }
+}
