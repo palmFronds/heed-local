@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: Config Layer, Bus & Standalone Test Harness
 status: executing
-stopped_at: Completed 01-01-PLAN.md — dev tooling scaffolded, RED test suite authored for CFG-01/CFG-02/BUS-01/TEST-01
-last_updated: "2026-07-11T22:35:20.803Z"
+stopped_at: Completed 01-02-PLAN.md — config/schema.json, config/demo-platform.json, and src/config.js implemented; CFG-01/CFG-02 GREEN
+last_updated: "2026-07-11T22:42:15.094Z"
 last_activity: 2026-07-11
 last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 5
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-09)
 ## Current Position
 
 Phase: 01 (Config Layer, Bus & Standalone Test Harness) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-07-11 — Phase 01 execution started
 
@@ -56,6 +56,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 01 P01 | 5min | 3 tasks | 9 files |
+| Phase 01 P02 | 3min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,7 @@ Recent decisions affecting current work:
 - Waterfall rule deliberately relaxed by project owner to allow this branch's planning to begin before Branch 1's gate passes.
 - [Phase 01]: Plain ESM JSON imports (no import assertion syntax) used in tests/config.test.js and future src/index.js — avoids Node-version-dependent assert/with { type: 'json' } syntax that would break the esbuild browser bundle — Vitest's Vite-based resolver handles plain JSON imports natively; keeps test code and eventual sdk.js bundle import syntax consistent
 - [Phase 01]: Requirements CFG-01/CFG-02/BUS-01/TEST-01 left unmarked in REQUIREMENTS.md traceability after plan 01-01, despite appearing in its frontmatter — This Wave-0 plan only authors RED tests encoding these requirements; the requirements themselves are genuinely satisfied by implementation plans 01-02 through 01-05, which will flip the suites GREEN
+- [Phase 01]: Implemented validateConfig/walk exactly per 01-RESEARCH.md Pattern 1's canonical excerpt — schema-driven generic interpreter over type/required/properties/enum keywords, no per-field hardcoded checks
 
 ### Pending Todos
 
@@ -93,6 +95,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-11T22:35:20.788Z
-Stopped at: Completed 01-01-PLAN.md — dev tooling scaffolded, RED test suite authored for CFG-01/CFG-02/BUS-01/TEST-01
+Last session: 2026-07-11T22:42:15.084Z
+Stopped at: Completed 01-02-PLAN.md — config/schema.json, config/demo-platform.json, and src/config.js implemented; CFG-01/CFG-02 GREEN
 Resume file: None

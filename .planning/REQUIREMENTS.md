@@ -9,8 +9,8 @@ Requirements for initial release. Each maps to a roadmap phase. Per PROJECT.md, 
 
 ### Config
 
-- [ ] **CFG-01**: `config/schema.json` (documented schema) + `config/demo-platform.json` target the 7 locked `data-heed` selectors from CONTRACT.md
-- [ ] **CFG-02**: Config validation hard-fails on invalid schema
+- [x] **CFG-01**: `config/schema.json` (documented schema) + `config/demo-platform.json` target the 7 locked `data-heed` selectors from CONTRACT.md
+- [x] **CFG-02**: Config validation hard-fails on invalid schema
 
 ### Bus
 
@@ -78,8 +78,8 @@ Explicitly excluded. Documented to prevent scope creep.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CFG-01 | Phase 1 | Pending |
-| CFG-02 | Phase 1 | Pending |
+| CFG-01 | Phase 1 | Complete |
+| CFG-02 | Phase 1 | Complete |
 | BUS-01 | Phase 1 | Pending |
 | TEST-01 | Phase 1 | Pending |
 | SIG-01 | Phase 2 | Pending |
@@ -101,6 +101,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | INTEG-01 | Phase 6 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 21 total
 - Mapped to phases: 21
 - Unmapped: 0 ✓
