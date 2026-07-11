@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 1
+current_phase: 01
 current_phase_name: Config Layer, Bus & Standalone Test Harness
 status: executing
-stopped_at: Roadmap and state initialized; requirements traceability updated with phase mappings
-last_updated: "2026-07-11T21:54:28.605Z"
+stopped_at: Completed 01-01-PLAN.md — dev tooling scaffolded, RED test suite authored for CFG-01/CFG-02/BUS-01/TEST-01
+last_updated: "2026-07-11T22:35:20.803Z"
 last_activity: 2026-07-11
-last_activity_desc: ROADMAP.md and STATE.md created; requirements traceability populated
+last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 5
+  completed_plans: 1
   percent: 0
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-09)
 
 **Core value:** All four signal types (touch hesitation, blur incomplete, scroll reversal, back intent) are captured cleanly and fed through a correctly implemented 2-layer feedforward net that produces a real probability distribution over intent classes — not a lookup table wearing a neural network's clothes.
-**Current focus:** Phase 1: Config Layer, Bus & Standalone Test Harness
+**Current focus:** Phase 01 — Config Layer, Bus & Standalone Test Harness
 
 ## Current Position
 
-Phase: 1 of 6 (Config Layer, Bus & Standalone Test Harness)
-Plan: 0 of TBD in current phase
+Phase: 01 (Config Layer, Bus & Standalone Test Harness) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
-Last activity: 2026-07-11 — ROADMAP.md and STATE.md created; requirements traceability populated
+Last activity: 2026-07-11 — Phase 01 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -55,6 +55,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: -
 
 *Updated after each plan completion*
+| Phase 01 P01 | 5min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,8 @@ Recent decisions affecting current work:
 - Standalone local static-HTML test harness (Phase 1) decouples Phases 1-5 from live Branch 1's build status.
 - Real local weight-push receiver persists and reloads weights (Phase 5) — closes the actual learning loop, not a logged stub.
 - Waterfall rule deliberately relaxed by project owner to allow this branch's planning to begin before Branch 1's gate passes.
+- [Phase 01]: Plain ESM JSON imports (no import assertion syntax) used in tests/config.test.js and future src/index.js — avoids Node-version-dependent assert/with { type: 'json' } syntax that would break the esbuild browser bundle — Vitest's Vite-based resolver handles plain JSON imports natively; keeps test code and eventual sdk.js bundle import syntax consistent
+- [Phase 01]: Requirements CFG-01/CFG-02/BUS-01/TEST-01 left unmarked in REQUIREMENTS.md traceability after plan 01-01, despite appearing in its frontmatter — This Wave-0 plan only authors RED tests encoding these requirements; the requirements themselves are genuinely satisfied by implementation plans 01-02 through 01-05, which will flip the suites GREEN
 
 ### Pending Todos
 
@@ -90,6 +93,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-11
-Stopped at: Roadmap and state initialized; requirements traceability updated with phase mappings
+Last session: 2026-07-11T22:35:20.788Z
+Stopped at: Completed 01-01-PLAN.md — dev tooling scaffolded, RED test suite authored for CFG-01/CFG-02/BUS-01/TEST-01
 Resume file: None
