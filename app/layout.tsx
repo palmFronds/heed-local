@@ -16,7 +16,7 @@ const geistMono = localFont({
 });
 
 export const viewport: Viewport = {
-  width: 390,
+  width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,

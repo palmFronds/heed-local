@@ -297,7 +297,7 @@ export default function SwapPage() {
       </div>
 
       {/* Fixed Bottom CTA */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[390px] px-5 pb-8 pt-4 bg-gradient-to-t from-background via-background to-transparent">
+      <div className="fixed bottom-0 left-1/2 w-full max-w-[390px] -translate-x-1/2 px-5 pb-8 pt-4 bg-gradient-to-t from-background via-background to-transparent">
         <Button
           data-heed="proceed-cta"
           className={`w-full h-14 text-base font-semibold rounded-2xl transition-all ${

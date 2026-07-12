@@ -100,9 +100,10 @@
    VIEWPORT LOCK — 390px iPhone 14 only
    ============================================ */
 
-/* Mobile app shell — always constrained to 390px */
+/* Mobile app shell — constrained to 390px, shrinks fluidly on narrower viewports */
 #mobile-app {
-  width: 390px;
+  max-width: 390px;
+  width: 100%;
   min-height: 100dvh;
   margin: 0 auto;
   position: relative;

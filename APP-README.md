@@ -29,7 +29,7 @@ The SDK will anchor its behavioral listeners and UI overlays strictly to these a
 - **Framework:** [Next.js](https://nextjs.org/) 16 (App Router)
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
-- **Components:** [Shadcn UI](https://ui.shadcn.com/) (Radix Primitives)
+- **Components:** [Shadcn UI](https://ui.shadcn.com/) (Base UI Primitives)
 - **Testing:** Playwright (E2E Automated Browser Testing)
 - **Fonts:** Locally hosted Geist Sans & Mono (Zero external network calls)
 
