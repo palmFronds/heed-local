@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Heed SDK — Standalone Test Harness</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 16px;
+    background: #f6f7f9;
+    color: #1a1a1a;
+  }
+  h1 { font-size: 18px; }
+  .screen {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .screen h2 { font-size: 14px; color: #666; margin-top: 0; }
+  input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+  .row { padding: 8px 0; font-size: 14px; color: #444; border-top: 1px solid #eee; }
+  button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    font-size: 15px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #fff;
+    cursor: pointer;
+  }
+  button.primary { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+  .success-marker {
+    font-weight: bold;
+    color: #1a7a2a;
+    text-align: center;
+    padding: 12px;
+  }
+  .debug-panel {
+    background: #fff8e1;
+    border: 1px solid #e0c060;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 24px;
+  }
+  .debug-panel h2 { font-size: 14px; margin-top: 0; }
+  .debug-panel p { font-size: 12px; color: #7a5c00; }
+  .debug-panel button { background: #fff3cd; border-color: #e0c060; }
+  #log {
+    background: #111;
+    color: #0f0;
+    font-family: monospace;
+    font-size: 11px;
+    padding: 8px;
+    height: 160px;
+    overflow-y: auto;
+    border-radius: 6px;
+    margin-top: 12px;
+    white-space: pre-wrap;
+  }
+</style>
+</head>
+<body>
+
+<h1>Heed SDK — Standalone Test Harness</h1>
+
+<!-- Screen 2: amount entry, mirrors Branch 1's swap screen -->
+<section class="screen">
+  <h2>Screen 2 — Amount Entry</h2>
+  <input type="text" data-heed="amount-input" placeholder="0.00" />
+  <div class="row" data-heed="fee-row">Fee: 0.30%</div>
+  <div class="row" data-heed="min-received-row">Minimum received: 99.70</div>
+  <button class="primary" data-heed="proceed-cta">Proceed</button>
+</section>
+
+<!-- Screen 3: confirmation, mirrors Branch 1's confirm screen -->
+<section class="screen">
+  <h2>Screen 3 — Confirm</h2>
+  <button class="primary" data-heed="confirm-cta">Confirm</button>
+  <button data-heed="back-btn">Back</button>
+</section>
+
+<!-- Screen 4: success -->
+<section class="screen">
+  <h2>Screen 4 — Success</h2>
+  <div class="success-marker" data-heed="flow-complete">Flow complete</div>
+</section>
+
+<!-- Bus/Config Smoke Test panel. Synthetic triggers only — this is NOT real
+     touch/scroll/blur/popstate detection. Real signal.js detection logic is
+     Phase 2's scope; this panel only proves the config -> bus -> subscriber
+     plumbing works end-to-end via direct bus.publish() calls. -->
+<section class="debug-panel">
+  <h2>Bus/Config Smoke Test — synthetic signals, not real touch/scroll detection</h2>
+  <p>
+    Each button below calls <code>window.Heed.publish('signal:detected', ...)</code>
+    directly with a synthetic, PII-free payload (targetSelector + bbox + timestamp
+    only — never field values). This proves the config/bus pipeline, not real
+    signal-detection timing logic.
+  </p>
+  <button type="button" data-signal="touch_hesitation" data-target="amount-input">
+    Simulate touch_hesitation
+  </button>
+  <button type="button" data-signal="blur_incomplete" data-target="amount-input">
+    Simulate blur_incomplete
+  </button>
+  <button type="button" data-signal="scroll_reversal" data-target="fee-row">
+    Simulate scroll_reversal
+  </button>
+  <button type="button" data-signal="back_intent" data-target="back-btn">
+    Simulate back_intent
+  </button>
+
+  <div id="log" aria-label="bus receipt log"></div>
+</section>
+
+<script src="../dist/sdk.js"></script>
+<script>
+  // Init against the bundled demo config — no backend, no fetch.
+  window.Heed.initDemo();
+
+  var logEl = document.getElementById('log');
+
+  function appendLog(entry) {
+    var line = JSON.stringify(entry);
+    logEl.textContent += line + '\n';
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  // Debug-log subscriber — decoupled from the trigger buttons below, proving
+  // receipt via the bus rather than a direct function call.
+  window.Heed.subscribe('signal:detected', function (detail) {
+    appendLog(detail);
+  });
+
+  // Wire each debug-panel trigger button. Payloads are built exclusively from
+  // the element's own data-heed attribute + getBoundingClientRect() + Date.now()
+  // — never element.value/textContent/cookies/localStorage (No-PII rule).
+  var triggerButtons = document.querySelectorAll('.debug-panel button[data-signal]');
+  triggerButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var signalType = btn.getAttribute('data-signal');
+      var targetHeedName = btn.getAttribute('data-target');
+      var targetEl = document.querySelector('[data-heed="' + targetHeedName + '"]');
+      var rect = targetEl.getBoundingClientRect();
+      var payload = {
+        type: signalType,
+        targetSelector: '[data-heed="' + targetEl.getAttribute('data-heed') + '"]',
+        bbox: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+        timestamp: Date.now(),
+      };
+      window.Heed.publish('signal:detected', payload);
+    });
+  });
+</script>
+
+</body>
+</html>
