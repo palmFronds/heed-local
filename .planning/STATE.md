@@ -5,16 +5,16 @@ milestone_name: milestone
 current_phase: 01
 current_phase_name: Config Layer, Bus & Standalone Test Harness
 status: executing
-stopped_at: Completed 01-04-PLAN.md — src/index.js init()/initDemo() orchestrator, dist/sdk.js esbuild bundle, and test-harness/index.html standalone harness implemented; TEST-01 GREEN
-last_updated: "2026-07-12T17:10:17.557Z"
-last_activity: 2026-07-11
-last_activity_desc: Phase 01 execution started
+stopped_at: Completed 01-05-PLAN.md — TEST-01 human-verify checkpoint approved in a real browser; Phase 01 (Config Layer, Bus & Standalone Test Harness) fully complete, all 5 plans done
+last_updated: "2026-07-12T18:29:38.876Z"
+last_activity: 2026-07-12
+last_activity_desc: Phase 01 (Config Layer, Bus & Standalone Test Harness) closed out — TEST-01 gate passed, all 5 plans complete
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
-  completed_plans: 4
-  percent: 0
+  completed_plans: 5
+  percent: 17
 ---
 
 # Project State
@@ -28,12 +28,12 @@ See: .planning/PROJECT.md (updated 2026-07-09)
 
 ## Current Position
 
-Phase: 01 (Config Layer, Bus & Standalone Test Harness) — EXECUTING
-Plan: 5 of 5
-Status: Ready to execute
-Last activity: 2026-07-11 — Phase 01 execution started
+Phase: 01 (Config Layer, Bus & Standalone Test Harness) — COMPLETE
+Plan: 5 of 5 complete
+Status: Phase 01 complete — TEST-01 gate passed (human-verified in a real browser); ready to plan Phase 02
+Last activity: 2026-07-12 — 01-05-PLAN.md checkpoint approved, Phase 01 closed out
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██░░░░░░░░] 17%
 
 ## Performance Metrics
 
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01 P01 | 5min | 3 tasks | 9 files |
 | Phase 01 P02 | 3min | 2 tasks | 3 files |
 | Phase 01 P04 | 4min | 2 tasks | 3 files |
+| Phase 01 P05 | 1min | 1 tasks | 0 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,7 @@ Recent decisions affecting current work:
 - [Phase 01]: Implemented validateConfig/walk exactly per 01-RESEARCH.md Pattern 1's canonical excerpt — schema-driven generic interpreter over type/required/properties/enum keywords, no per-field hardcoded checks
 - [Phase 01]: src/index.js re-exports publish/subscribe as top-level named exports (not only nested in init()'s return) so window.Heed.publish/subscribe work directly from the harness debug panel
 - [Phase 01]: Debug-panel signal-to-element mapping follows CONTRACT.md's documented Branch-2-targets-per-selector table: touch_hesitation/blur_incomplete -> amount-input, scroll_reversal -> fee-row, back_intent -> back-btn
+- [Phase 01]: Phase 01 (Config Layer, Bus & Standalone Test Harness) gate-passed: human operator confirmed in a real browser that all 7 data-heed selectors resolve and all 4 signal types produce logged, PII-free bus receipts (TEST-01)
 
 ### Pending Todos
 
@@ -98,6 +100,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-12T17:10:17.543Z
-Stopped at: Completed 01-04-PLAN.md — src/index.js init()/initDemo() orchestrator, dist/sdk.js esbuild bundle, and test-harness/index.html standalone harness implemented; TEST-01 GREEN
+Last session: 2026-07-12T18:26:59.876Z
+Stopped at: Completed 01-05-PLAN.md — TEST-01 human-verify checkpoint approved in a real browser; Phase 01 (Config Layer, Bus & Standalone Test Harness) fully complete, all 5 plans done
 Resume file: None

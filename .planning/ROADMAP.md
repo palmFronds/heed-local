@@ -25,7 +25,7 @@ from Branch 1's build status; only the final phase requires Branch 1 live.
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Config Layer, Bus & Standalone Test Harness** - Config-driven selector targeting, a pub/sub bus, and a static test harness that unblocks every later phase from Branch 1's build status
+- [x] **Phase 1: Config Layer, Bus & Standalone Test Harness** - Config-driven selector targeting, a pub/sub bus, and a static test harness that unblocks every later phase from Branch 1's build status (completed 2026-07-12)
 - [ ] **Phase 2: Signal Capture Layer** - All 4 signal types captured cleanly, SPA-safe, and emitted as PII-free payloads onto the bus
 - [ ] **Phase 3: Inference Layer** - A genuine, explicitly hand-written forward pass classifies signals into 4 intent classes, gated by confidence, improved by a real session-end learning update
 - [ ] **Phase 4: Response Overlay & Logging** - Confidence-gated inference results render as one of 4 non-blocking overlay responses; every pipeline event is structurally logged
@@ -46,7 +46,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A signal published on the bus by a test emitter is received by a separate subscriber module with no direct import between the two.
   4. Opening `test-harness/index.html` in a browser exposes all 7 `data-heed` selectors and every signal type can be manually triggered with no running Branch 1 and no backend.
 
-**Plans**: 4/5 plans executed
+**Plans**: 5/5 plans complete
 **Wave 1**
 
 - [x] 01-01-PLAN.md — Project scaffold + failing (RED) test suite for CFG-01/CFG-02/BUS-01/TEST-01 (Wave 0)
@@ -59,7 +59,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 01-05-PLAN.md — Human-verify checkpoint: harness end-to-end in a real browser (TEST-01 gate) (Wave 3)
+- [x] 01-05-PLAN.md — Human-verify checkpoint: harness end-to-end in a real browser (TEST-01 gate) (Wave 3)
 
 ### Phase 2: Signal Capture Layer
 
@@ -145,7 +145,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Config Layer, Bus & Standalone Test Harness | 4/5 | In Progress|  |
+| 1. Config Layer, Bus & Standalone Test Harness | 5/5 | Complete   | 2026-07-12 |
 | 2. Signal Capture Layer | 0/TBD | Not started | - |
 | 3. Inference Layer | 0/TBD | Not started | - |
 | 4. Response Overlay & Logging | 0/TBD | Not started | - |
