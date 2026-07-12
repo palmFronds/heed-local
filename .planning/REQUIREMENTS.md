@@ -14,7 +14,7 @@ Requirements for initial release. Each maps to a roadmap phase. Per PROJECT.md, 
 
 ### Bus
 
-- [ ] **BUS-01**: Internal event bus carries signals from `signal.js` to `inference.js` with no signal leaving the browser except the session-end weight push
+- [x] **BUS-01**: Internal event bus carries signals from `signal.js` to `inference.js` with no signal leaving the browser except the session-end weight push
 
 ### Signals
 
@@ -80,7 +80,7 @@ Explicitly excluded. Documented to prevent scope creep.
 |-------------|-------|--------|
 | CFG-01 | Phase 1 | Complete |
 | CFG-02 | Phase 1 | Complete |
-| BUS-01 | Phase 1 | Pending |
+| BUS-01 | Phase 1 | Complete |
 | TEST-01 | Phase 1 | Pending |
 | SIG-01 | Phase 2 | Pending |
 | SIG-02 | Phase 2 | Pending |
