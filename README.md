@@ -1,127 +1,94 @@
-# heed-harness
+# Heed Demo Platform (Repo 1)
 
-A self-contained synthetic harness for Heed — the real-time behavioral
-intervention control layer. Built before any pilot partner is involved.
+This directory contains the **Heed Demo Platform**, a self-contained, mobile-only Next.js application that simulates a high-stakes cryptocurrency wallet transaction flow. 
 
-When a partner says yes, the only thing that changes is:
-- Their staging URL replaces the demo platform
-- The SDK deploys on their environment instead of localhost
-- Real user sessions replace agent-generated ones
-- The eval pipeline keeps running on live data
-
-Everything else is already built and understood.
+This platform serves as the **host environment** (Repo 1) for the Heed SDK (Repo 2). It does not have a real backend, database, or crypto integration; its sole purpose is to provide a realistic, stable DOM structure for the Heed SDK to instrument and monitor for behavioral hesitation signals.
 
 ---
 
-## What this is
+## 🔌 The "Connector" (The Contract)
 
-Four branches. Each is a self-contained module. Each is built and verified
-completely before the next one is started. Strict waterfall — no exceptions.
+The most important aspect of this codebase is the **7 locked HTML selectors**. These selectors act as the hard contract (the "connector") between this dummy platform and the future Heed SDK. 
 
+The SDK will anchor its behavioral listeners and UI overlays strictly to these attributes. **Do not rename or remove these attributes without cross-branch coordination.**
+
+| Selector | Screen | Element | Purpose for SDK |
+|----------|--------|---------|-----------------|
+| `[data-heed="amount-input"]` | `/swap` | Amount `<Input>` | Detects *Blur Incomplete* (user taps in but leaves without typing). |
+| `[data-heed="fee-row"]` | `/swap` | Fee `<div>` | Target for Scroll Reversal (user scrolls past fee and retreats). |
+| `[data-heed="min-received-row"]`| `/swap` | Min received `<div>` | Additional context anchor. |
+| `[data-heed="proceed-cta"]` | `/swap` | Proceed `<Button>` | Primary anchor for *Touch Hesitation* (user presses and holds the button in doubt). |
+| `[data-heed="confirm-cta"]` | `/confirm` | Confirm `<Button>` | Secondary anchor for Touch Hesitation. |
+| `[data-heed="back-btn"]` | `/confirm` | Back `<Button>` | Primary anchor for *Back Intent* (user leaves confirmation screen). |
+| `[data-heed="flow-complete"]` | `/success` | Success `<div>` | Tells the SDK the flow was completed (Session success label for neural net). |
+
+---
+
+## 🛠️ The Tech Stack
+
+- **Framework:** [Next.js](https://nextjs.org/) 16 (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **Components:** [Shadcn UI](https://ui.shadcn.com/) (Base UI Primitives)
+- **Testing:** Playwright (E2E Automated Browser Testing)
+- **Fonts:** Locally hosted Geist Sans & Mono (Zero external network calls)
+
+---
+
+## 🏗️ How it was Built (Architectural Constraints)
+
+To ensure this dummy platform acts identically to a secure financial app, it was built under strict constraints:
+
+1. **Mobile-Only Viewport Lock:** The app forces a `390px` width (iPhone 14 dimensions) via CSS media queries. If viewed on a desktop viewport wider than 430px, it immediately hides the app and displays a "This app is mobile-only" fallback message.
+2. **Network Silence:** There are absolutely zero external API calls or outbound fetch requests. Even the Google Fonts were downloaded and bundled locally (`app/fonts/`) to simulate a secure, air-gapped financial environment.
+3. **State Persistence:** The swap amount is held in React Context (`SwapProvider`). Navigation uses native Next.js routing (`router.push()`), and clicking the back button successfully restores the user's previously entered amount.
+4. **Scroll Overflow:** The `swap` screen was intentionally designed with extensive "Risk Warning" disclosures below the fold. This forces the screen height well past `844px`, allowing the SDK to test its *Scroll Reversal* behavioral signal.
+
+---
+
+## 📁 Folder Structure
+
+```text
+demo-platform/
+├── app/                      # Next.js App Router (All Pages)
+│   ├── fonts/                # Locally bundled .woff2 font files
+│   ├── swap/                 # Screen 2: Amount Entry & Disclosures
+│   ├── confirm/              # Screen 3: Transaction Review
+│   ├── success/              # Screen 4: Completion Screen
+│   ├── globals.css           # Tailwind base & Viewport lock CSS
+│   ├── layout.tsx            # Root HTML shell & Desktop Fallback
+│   ├── page.tsx              # Screen 1: Wallet Overview
+│   └── providers.tsx         # React Context for State Persistence
+├── components/ui/            # Shadcn UI Components
+│   ├── button.tsx            
+│   ├── card.tsx              
+│   └── input.tsx             
+├── e2e/                      # Playwright E2E Tests
+│   └── flow.spec.ts          # Automated verification of the 7 selectors
+├── playwright.config.ts      # Test config (Forces Chromium + iPhone 14)
+└── package.json              # Dependencies & Scripts
 ```
-main                  ← skeleton only: README, CLAUDE.md, CONTRACT.md
-feat/demo-platform    ← the dummy wallet app Heed sits on top of
-feat/heed-sdk         ← the actual Heed product: script tag + inference + overlay
-feat/agents           ← Playwright personas that generate synthetic session data
-feat/eval             ← metrics, Laminar ingestion, weight update cycle
+
+---
+
+## 🚀 How to Run & Test
+
+First, ensure you have run `npm install` to generate the `node_modules` folder.
+
+**Local Development (Computer):**
+```bash
+npm run dev
 ```
+*Opens at `http://localhost:3000`. Use Chrome DevTools (F12) Device Emulation to view as an iPhone.*
 
----
+**Network Development (Phone Testing):**
+```bash
+npm run dev:network
+```
+*Binds to `0.0.0.0`. Allows you to connect to your computer's local IP address (e.g., `http://192.168.X.X:3000`) directly from your mobile phone.*
 
-## The contract
-
-Before any branch is initialized, the contract is locked. These are the
-seven data-heed selectors that connect all three technical branches.
-Branch 1 owns their existence. Branch 2 targets them in config. Branch 3
-interacts with them in Playwright scripts.
-
-Do not rename them. Changing one requires updating all three branches.
-
-See CONTRACT.md for the full list.
-
----
-
-## Waterfall sequence
-
-Each branch has a hard gate. Nothing downstream starts until the upstream
-gate passes completely.
-
-### Branch 1 — feat/demo-platform
-Mobile-only Next.js wallet flow. Four screens. No backend. No external APIs.
-390px viewport only.
-
-Gate: Manual walkthrough of all four screens with zero errors. All seven
-data-heed selectors visible in DevTools. Playwright can load and navigate
-the full flow in iPhone 14 emulation.
-
-### Branch 2 — feat/heed-sdk
-The Heed SDK. Vanilla JS. Single script tag. Signal capture (touch events
-only), 2-layer inference net (brain.js), response overlay, config layer,
-logging.
-
-Gate: All four signal types fire manually on the demo platform and produce
-correct log entries. Inference forward pass outputs a confidence score and
-intent class. Response overlay renders at 390px without blocking interaction.
-All six log event types appear in a complete session.
-
-### Branch 3 — feat/agents
-Playwright persona scripts. Three behavioral profiles (confident, hesitant,
-abandoning) in iPhone 14 emulation. Volume runner generates 100+ sessions
-headlessly.
-
-Gate: 100 sessions complete without errors. Output NDJSON is valid.
-Signal distribution is plausible: back_intent appears almost exclusively
-in abandoning sessions. Response fire rate is higher in hesitant and
-abandoning sessions than confident.
-
-### Branch 4 — feat/eval
-Session ingestion, metrics computation, Laminar trace storage, annotation
-workflow, weight update cycle.
-
-Gate: One complete weight update cycle run end to end. Updated weights
-written back to Branch 2 config. New agent batch shows stable or improved
-classification_accuracy relative to the first batch.
-
----
-
-## How the branches connect at runtime
-
-Branch 1 runs on localhost:3000
-  Branch 2 SDK loads via script tag on Branch 1
-    Branch 3 agents navigate Branch 1, Heed fires on their touch events
-      Branch 4 reads session output, computes metrics, updates weights
-        Updated weights feed back into Branch 2 config
-
----
-
-## What this is not
-
-- Not a dashboard or partner-facing UI
-- Not a production CDN deployment
-- Not connected to any blockchain or external service
-- Not a multi-partner system
-- Not federated learning
-- Not a vision model pipeline
-
-If a task implies any of the above, it is out of scope. Note it and defer it.
-
----
-
-## Stack summary
-
-| Branch | Stack |
-|--------|-------|
-| demo-platform | Next.js, Tailwind, Shadcn, no backend |
-| heed-sdk | Vanilla JS, brain.js, no framework |
-| agents | Node.js, Playwright |
-| eval | Node.js, Laminar (lmnr.ai) |
-
----
-
-## Getting started
-
-1. Clone the repo
-2. Install GSD globally: npx @opengsd/gsd-core@latest --claude --global
-3. Restart Claude Code
-4. Check out feat/demo-platform and run /gsd-new-project to begin
-5. Do not touch any other branch until Branch 1's gate passes
+**Automated Testing:**
+```bash
+npx playwright test --reporter=list
+```
+*Spins up a headless Chromium browser and verifies that all 4 screens can be navigated, state persists, no external networks are called, and all 7 `data-heed` selectors are queryable.*
