@@ -46,7 +46,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A signal published on the bus by a test emitter is received by a separate subscriber module with no direct import between the two.
   4. Opening `test-harness/index.html` in a browser exposes all 7 `data-heed` selectors and every signal type can be manually triggered with no running Branch 1 and no backend.
 
-**Plans**: 3/5 plans executed
+**Plans**: 4/5 plans executed
 **Wave 1**
 
 - [x] 01-01-PLAN.md — Project scaffold + failing (RED) test suite for CFG-01/CFG-02/BUS-01/TEST-01 (Wave 0)
@@ -55,7 +55,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 01-04-PLAN.md — init() orchestrator, esbuild bundle, static test harness with synthetic-signal debug panel (TEST-01) (Wave 2)
+- [x] 01-04-PLAN.md — init() orchestrator, esbuild bundle, static test harness with synthetic-signal debug panel (TEST-01) (Wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -145,7 +145,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Config Layer, Bus & Standalone Test Harness | 3/5 | In Progress|  |
+| 1. Config Layer, Bus & Standalone Test Harness | 4/5 | In Progress|  |
 | 2. Signal Capture Layer | 0/TBD | Not started | - |
 | 3. Inference Layer | 0/TBD | Not started | - |
 | 4. Response Overlay & Logging | 0/TBD | Not started | - |
