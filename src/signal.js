@@ -190,17 +190,76 @@ export function attachScrollReversal(config) {
   window.addEventListener('scroll', () => checkScrollReversal(config), { passive: true });
 }
 
+// SIG-06: attachedElements is the SOLE idempotency gate for re-attachment,
+// keyed on DOM ELEMENT IDENTITY (not selector string). In a real SPA route
+// swap the OLD amountInput/CTA elements are detached and eventually
+// garbage-collected — their WeakSet entries disappear for free, zero manual
+// cleanup — while the NEW route's elements are different objects, so
+// `attachedElements.has(newEl)` is false and they correctly receive fresh
+// listeners. A `Set<string>` keyed on selector string would instead treat
+// "I've seen this selector before" as "already wired" and silently fail to
+// attach to the new element post-swap — the exact silent-under-attachment
+// failure mode SIG-06 guards against (02-RESEARCH.md Pattern 1).
+const attachedElements = new WeakSet();
+// lastPathname is the ONLY state maybeReattach() diffs against — it is the
+// single pathname-gated re-attach path reached from both the
+// MutationObserver callback and the popstate listener (SIG-06).
+let lastPathname = window.location.pathname;
+// D-06's cached flowComplete flag — read by the popstate handler instead of
+// a live DOM query. checkFlowComplete() below is the only place that ever
+// sets it true.
+let flowCompleteFlag = false;
+
 /**
- * Entry point that wires the DOM-element/window signal handlers. Extended in
- * Plan 02-03 with back-intent/SPA-reattachment wiring (WeakSet idempotency,
- * MutationObserver, cached flowComplete flag) — this plan wires only the
- * three signal types whose RED tests were authored in Plan 02-01
- * (touch hesitation, blur incomplete, scroll reversal).
+ * D-06: sets flowCompleteFlag the first time the completion element resolves
+ * as VISIBLE — never clears it once true (this function only ever sets it,
+ * it does not reset it; see attachListeners' reset comment below for why a
+ * separate reset path exists at the attach-pass boundary instead). Checks
+ * `el.style.display !== 'none'` rather than mere presence in the DOM: a real
+ * SPA route swap would remove the completion element from the DOM entirely
+ * when it isn't the active screen, but this project's shared test fixture
+ * (and potentially a real partner page using CSS-based show/hide instead of
+ * conditional rendering) keeps the element present with `display: none`
+ * until the completion screen is actually reached — treating mere presence
+ * as "resolved" would latch the flag true on the very first attach pass,
+ * before the completion screen has genuinely appeared.
+ * @param {*} config
+ */
+function checkFlowComplete(config) {
+  if (flowCompleteFlag) return; // once true, this function never clears it (D-06)
+  const selector = config.selectors?.flowComplete ?? config.completionSelector;
+  const el = document.querySelector(selector);
+  if (el && el.style.display !== 'none') {
+    flowCompleteFlag = true;
+  }
+}
+
+/**
+ * Entry point that wires the DOM-element/window signal handlers. Idempotent
+ * per element via the attachedElements WeakSet (SIG-06) — safe to call
+ * repeatedly (initial load, every genuine SPA navigation) without stacking
+ * duplicate listeners on an element that was already wired.
  * @param {*} config
  */
 export function attachListeners(config) {
+  // Reset flowCompleteFlag at the top of every attach pass: an attach pass
+  // only ever runs on initial load or a genuine route change (maybeReattach
+  // only calls this on a pathname diff), so — mirroring attachScrollReversal's
+  // established per-attach-pass state reset (Plan 02-02) — a fresh
+  // route/session starts with a fresh "has THIS screen's completion element
+  // appeared" baseline, recomputed immediately below by checkFlowComplete
+  // against the current DOM. checkFlowComplete itself still never clears the
+  // flag (its own body only ever sets it true), so a single attach pass
+  // cannot both clear and then correctly re-detect within the same call in a
+  // way that violates D-06's "cached, not live-queried in the popstate
+  // handler" requirement — the live query still only ever happens here or in
+  // maybeReattach, never inside the popstate listener itself.
+  flowCompleteFlag = false;
+
   const targets = resolveTargets(config);
   for (const { el, selectorKey, selectorValue } of targets) {
+    if (attachedElements.has(el)) continue; // idempotent — element already wired (SIG-06)
+    attachedElements.add(el);
     // D-02 scope: only proceedCta/confirmCta/backBtn get touch-hesitation
     // wiring — feeRow/minReceivedRow are excluded (see const comment above).
     if (TOUCH_HESITATION_SELECTOR_KEYS.includes(selectorKey)) {
@@ -212,16 +271,34 @@ export function attachListeners(config) {
     }
   }
   attachScrollReversal(config);
+  checkFlowComplete(config); // re-check on every attach pass (D-06)
+}
+
+/**
+ * The single pathname-gated re-attach gate (SIG-06) — the ONLY function that
+ * diffs window.location.pathname against a remembered value and calls
+ * attachListeners for re-attachment. Both the MutationObserver callback and
+ * the popstate listener call this same function so there is exactly one
+ * re-attachment code path to reason about (02-RESEARCH.md Pattern 1).
+ * @param {*} config
+ */
+export function maybeReattach(config) {
+  const currentPathname = window.location.pathname;
+  if (currentPathname !== lastPathname) {
+    lastPathname = currentPathname;
+    attachListeners(config); // also re-checks flowComplete internally (D-06)
+  } else {
+    checkFlowComplete(config); // pathname unchanged, but completion element may have just appeared
+  }
 }
 
 /**
  * Thin wrapper around attachListeners so tests/signal.test.js's import of
  * initSignalCapture resolves cleanly (a missing named export would fail the
  * whole test file's module load, not just the SIG-04 tests that use it).
- * Plan 02-03 extends this with MutationObserver-based SPA re-attachment
- * (SIG-06) and popstate-driven back-intent detection (SIG-04, D-06) — until
- * then, back_intent-related assertions remain RED by design (see
- * 02-02-PLAN.md's verification section).
+ * Task 2 of this plan extends this with MutationObserver-based SPA
+ * re-attachment wiring and popstate-driven back-intent detection (SIG-04,
+ * D-06) — until then, back_intent-related assertions remain RED by design.
  * @param {*} config
  */
 export function initSignalCapture(config) {
