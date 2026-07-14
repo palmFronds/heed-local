@@ -99,28 +99,46 @@
   <div class="success-marker" data-heed="flow-complete">Flow complete</div>
 </section>
 
-<!-- Bus/Config Smoke Test panel. Synthetic triggers only — this is NOT real
-     touch/scroll/blur/popstate detection. Real signal.js detection logic is
-     Phase 2's scope; this panel only proves the config -> bus -> subscriber
-     plumbing works end-to-end via direct bus.publish() calls. -->
+<!-- Pitfall 7 (02-RESEARCH.md): scroll-height filler so a real/simulated
+     scroll can genuinely cross the 40% viewport-depth threshold on a mobile
+     viewport. Without this, document.documentElement.scrollHeight would sit
+     close to window.innerHeight and the scroll_reversal button/gesture would
+     silently no-op with nothing to scroll. Target: scrollHeight exceeds
+     window.innerHeight * 1.5 on a typical 390x844 mobile viewport. -->
+<div style="height: 1000px;" aria-hidden="true"></div>
+
+<!-- D-08: rewired to dispatch REAL DOM events (fake touchstart/touchend
+     sequences, focus/blur, scroll, popstate) onto the mapped data-heed
+     elements/window — this drives signal.js's ACTUAL addEventListener
+     listeners (the hold timer, blur diff, scroll hysteresis, popstate
+     handler), not a direct window.Heed.publish() bypass. Events are
+     isTrusted:false (programmatically dispatched) but still invoke ordinary
+     listener callbacks normally — isTrusted only affects browser default
+     actions, not addEventListener dispatch. This still is NOT a substitute
+     for Phase 6's real-device manual testing sequence: dispatchEvent-driven
+     touch input does not exercise the real compositor-thread touch pipeline
+     the way an actual finger on a real/emulated mobile device does. -->
 <section class="debug-panel">
-  <h2>Bus/Config Smoke Test — synthetic signals, not real touch/scroll detection</h2>
+  <h2>Real-Event Debug Panel — dispatches real DOM events into signal.js's listeners (D-08)</h2>
   <p>
-    Each button below calls <code>window.Heed.publish('signal:detected', ...)</code>
-    directly with a synthetic, PII-free payload (targetSelector + bbox + timestamp
-    only — never field values). This proves the config/bus pipeline, not real
-    signal-detection timing logic.
+    Each button below dispatches a real (though programmatically constructed,
+    <code>isTrusted:false</code>) DOM event — <code>touchstart</code>/<code>touchend</code>,
+    <code>focus</code>/<code>blur</code>, <code>scroll</code>, or <code>popstate</code> — onto
+    the corresponding <code>data-heed</code> element or <code>window</code>. This exercises
+    <code>signal.js</code>'s real listeners end-to-end, not a synthetic
+    <code>window.Heed.publish()</code> shortcut. Not a substitute for a real mobile device's
+    touch pipeline (Phase 6's manual verification gate).
   </p>
-  <button type="button" data-signal="touch_hesitation" data-target="amount-input">
+  <button type="button" data-signal="touch_hesitation">
     Simulate touch_hesitation
   </button>
-  <button type="button" data-signal="blur_incomplete" data-target="amount-input">
+  <button type="button" data-signal="blur_incomplete">
     Simulate blur_incomplete
   </button>
-  <button type="button" data-signal="scroll_reversal" data-target="fee-row">
+  <button type="button" data-signal="scroll_reversal">
     Simulate scroll_reversal
   </button>
-  <button type="button" data-signal="back_intent" data-target="back-btn">
+  <button type="button" data-signal="back_intent">
     Simulate back_intent
   </button>
 
@@ -141,29 +159,60 @@
   }
 
   // Debug-log subscriber — decoupled from the trigger buttons below, proving
-  // receipt via the bus rather than a direct function call.
+  // receipt via the bus rather than a direct function call. Kept
+  // byte-identical to Phase 1 (D-08 only rewires the trigger buttons below).
   window.Heed.subscribe('signal:detected', function (detail) {
     appendLog(detail);
   });
 
-  // Wire each debug-panel trigger button. Payloads are built exclusively from
-  // the element's own data-heed attribute + getBoundingClientRect() + Date.now()
-  // — never element.value/textContent/cookies/localStorage (No-PII rule).
-  var triggerButtons = document.querySelectorAll('.debug-panel button[data-signal]');
-  triggerButtons.forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var signalType = btn.getAttribute('data-signal');
-      var targetHeedName = btn.getAttribute('data-target');
-      var targetEl = document.querySelector('[data-heed="' + targetHeedName + '"]');
-      var rect = targetEl.getBoundingClientRect();
-      var payload = {
-        type: signalType,
-        targetSelector: '[data-heed="' + targetEl.getAttribute('data-heed') + '"]',
-        bbox: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
-        timestamp: Date.now(),
-      };
-      window.Heed.publish('signal:detected', payload);
-    });
+  // D-08: each simulate* function dispatches a REAL DOM event onto the
+  // mapped data-heed element/window, driving signal.js's actual listeners
+  // (touchstart/touchend hold timer, focus/blur diff, scroll hysteresis,
+  // popstate handler) instead of calling window.Heed.publish() directly.
+
+  function simulateHold(el, holdMs) {
+    var touch = new Touch({ identifier: Date.now(), target: el, clientX: 0, clientY: 0 });
+    el.dispatchEvent(new TouchEvent('touchstart', {
+      touches: [touch], targetTouches: [touch], changedTouches: [touch], bubbles: true, cancelable: true,
+    }));
+    setTimeout(function () {
+      el.dispatchEvent(new TouchEvent('touchend', {
+        touches: [], targetTouches: [], changedTouches: [touch], bubbles: true, cancelable: true,
+      }));
+    }, holdMs);
+  }
+
+  function simulateBlurIncomplete(el) {
+    el.dispatchEvent(new FocusEvent('focus', { bubbles: true }));
+    el.value = ''; // ensure empty at blur time — D-03 fires on empty-at-blur
+    el.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
+  }
+
+  function simulateScrollReversal() {
+    window.scrollTo(0, window.innerHeight * 0.5); // past the 40% depth threshold
+    window.dispatchEvent(new Event('scroll'));
+    window.scrollTo(0, window.innerHeight * 0.5 - 100); // reverse by >50px (D-05 minimum delta)
+    window.dispatchEvent(new Event('scroll'));
+  }
+
+  function simulateBackIntent() {
+    window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
+  }
+
+  var proceedCtaEl = document.querySelector('[data-heed="proceed-cta"]');
+  var amountInputEl = document.querySelector('[data-heed="amount-input"]');
+
+  document.querySelector('button[data-signal="touch_hesitation"]').addEventListener('click', function () {
+    simulateHold(proceedCtaEl, 900); // past the 800ms threshold (SIG-01, D-01)
+  });
+  document.querySelector('button[data-signal="blur_incomplete"]').addEventListener('click', function () {
+    simulateBlurIncomplete(amountInputEl);
+  });
+  document.querySelector('button[data-signal="scroll_reversal"]').addEventListener('click', function () {
+    simulateScrollReversal();
+  });
+  document.querySelector('button[data-signal="back_intent"]').addEventListener('click', function () {
+    simulateBackIntent();
   });
 </script>
 
