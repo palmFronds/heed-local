@@ -78,9 +78,17 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 4 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 02-01-PLAN.md — Wave-0 RED test suites (SIG-01..06) + config schema signals extension (D-05)
 - [ ] 02-02-PLAN.md — src/signal.js core: buildPayload choke point, touch hesitation, blur incomplete, scroll reversal (SIG-01/02/03/05)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 02-03-PLAN.md — SPA re-attachment + back intent + index.js wiring (SIG-04/06)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 02-04-PLAN.md — D-08 harness rewiring, Playwright E2E, human-verify phase gate
 
 ### Phase 3: Inference Layer — Forward Pass, Confidence Gate & Cold-Start Weights
