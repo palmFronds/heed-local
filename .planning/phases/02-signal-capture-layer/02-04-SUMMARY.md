@@ -173,3 +173,7 @@ None - no external service configuration required. Task 3, when resumed, require
 ---
 *Phase: 02-signal-capture-layer*
 *Completed: 2026-07-14 (Tasks 1-2 only — Task 3 pending)*
+
+## Self-Check: PASSED
+
+`test-harness/index.html`, `playwright.config.js`, `tests/e2e/harness.spec.js`, `vitest.config.js` found on disk; `.planning/phases/02-signal-capture-layer/02-04-SUMMARY.md` found on disk; all three commit hashes (03a52fe, 36de01e, 8401fdd) found in git log.
