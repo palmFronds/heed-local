@@ -3,6 +3,7 @@
 // entirely (CFG-02) rather than fall back to defaults or partial exposure.
 import { validateConfig } from './config.js';
 import { publish, subscribe } from './bus.js';
+import { initSignalCapture } from './signal.js';
 import schema from '../config/schema.json';
 import demoConfig from '../config/demo-platform.json';
 
@@ -17,6 +18,12 @@ export { publish, subscribe };
  */
 export function init(rawConfig) {
   const config = validateConfig(rawConfig, schema);
+  // Signal listeners attach only AFTER hard-fail validation passes — never
+  // instrument the DOM against an unvalidated config, mirroring the note
+  // above that an invalid config must stop initialization entirely (CFG-02).
+  initSignalCapture(config);
+  // Return shape stays exactly { config, publish, subscribe } — signal
+  // capture is side-effecting, not a returned value (no new key added here).
   return { config, publish, subscribe };
 }
 
