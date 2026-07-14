@@ -292,15 +292,50 @@ export function maybeReattach(config) {
   }
 }
 
+// Guards initSignalCapture's one-time MutationObserver/popstate registration
+// — window and document.body are singletons for the page's lifetime, so a
+// second registration would stack duplicate observers/listeners and cause
+// double-firing. attachListeners itself stays un-guarded (see below) since
+// it is already idempotent per element via the WeakSet.
+let initialized = false;
+
 /**
- * Thin wrapper around attachListeners so tests/signal.test.js's import of
- * initSignalCapture resolves cleanly (a missing named export would fail the
- * whole test file's module load, not just the SIG-04 tests that use it).
- * Task 2 of this plan extends this with MutationObserver-based SPA
- * re-attachment wiring and popstate-driven back-intent detection (SIG-04,
- * D-06) — until then, back_intent-related assertions remain RED by design.
+ * SDK entry point: wires the initial attach pass, then a single
+ * MutationObserver (which drives BOTH pathname-gated re-attachment AND the
+ * D-06 flowComplete flag update via maybeReattach → checkFlowComplete — one
+ * observer instance, two responsibilities, never two observers) and a single
+ * popstate listener (SIG-04) that also funnels through maybeReattach before
+ * reading the cached flag.
  * @param {*} config
  */
 export function initSignalCapture(config) {
+  // Always safe to call — idempotent per element via the WeakSet (SIG-06) —
+  // so repeat calls (e.g. against a freshly-rendered DOM) still pick up any
+  // new elements even after the observer/popstate guard below has already
+  // fired once.
   attachListeners(config);
+
+  if (initialized) return; // never stack a second observer/popstate listener
+  initialized = true;
+
+  // ONE MutationObserver serves two jobs via maybeReattach: pathname-gated
+  // re-attachment AND the flowComplete flag update (D-06) — never a second
+  // observer instance (02-RESEARCH.md Anti-Patterns).
+  const observer = new MutationObserver(() => maybeReattach(config));
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  window.addEventListener('popstate', () => {
+    maybeReattach(config);
+    // Reads the CACHED flowCompleteFlag only — this handler never runs a
+    // live querySelector for the completion element itself (D-06's explicit
+    // requirement); the live check, when needed, happens inside
+    // maybeReattach()/checkFlowComplete() above, synchronously, before this
+    // line runs.
+    if (!flowCompleteFlag) {
+      publish(
+        'signal:detected',
+        buildPayload('back_intent', { pathname: window.location.pathname })
+      );
+    }
+  });
 }
