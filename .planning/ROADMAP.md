@@ -75,7 +75,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. Every emitted signal payload contains only geometry/timing fields — no field values, no user identity, confirmed by code inspection of the payload-construction path.
   6. Simulating 3+ consecutive SPA route changes re-attaches listeners exactly once per navigation via WeakSet-keyed idempotency, with no duplicate signal firing and no missed re-attachment.
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Wave-0 RED test suites (SIG-01..06) + config schema signals extension (D-05)
+- [ ] 02-02-PLAN.md — src/signal.js core: buildPayload choke point, touch hesitation, blur incomplete, scroll reversal (SIG-01/02/03/05)
+- [ ] 02-03-PLAN.md — SPA re-attachment + back intent + index.js wiring (SIG-04/06)
+- [ ] 02-04-PLAN.md — D-08 harness rewiring, Playwright E2E, human-verify phase gate
 
 ### Phase 3: Inference Layer — Forward Pass, Confidence Gate & Cold-Start Weights
 
