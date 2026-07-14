@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 2
 current_phase_name: Signal Capture Layer
 status: executing
-stopped_at: Phase 2 context gathered
-last_updated: "2026-07-14T13:13:35.016Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-07-14T13:29:29.136Z"
 last_activity: 2026-07-14
 last_activity_desc: Phase 2 execution started
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 9
-  completed_plans: 6
+  completed_plans: 7
   percent: 17
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-09)
 ## Current Position
 
 Phase: 2 (Signal Capture Layer) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-07-14 — Phase 2 execution started
 
@@ -60,6 +60,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 01 P04 | 4min | 2 tasks | 3 files |
 | Phase 01 P05 | 1min | 1 tasks | 0 files |
 | Phase 02 P01 | 10min | 3 tasks | 4 files |
+| Phase 02-signal-capture-layer P02 | 9min | 3 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,9 @@ Recent decisions affecting current work:
 - [Phase 02]: Scroll-reversal RED tests stub window.innerHeight/scrollY via Object.defineProperty (not window.scrollTo()) — happy-dom has no real layout engine (02-RESEARCH.md Pitfall 5)
 - [Phase 02]: SIG-06 idempotency tests use blur_incomplete (synchronous, no timer) as the re-attachment probe instead of touch_hesitation, keeping tests/signal-spa.test.js free of vi.useFakeTimers() (happy-dom#2097)
 - [Phase 02]: SIG-01 through SIG-06 intentionally left unmarked in requirements-completed after Plan 02-01 — this Wave-0 plan only authors RED tests encoding them; they flip GREEN and get marked complete in Plans 02/03 (mirrors Phase-1 precedent)
+- [Phase 02]: Scroll-reversal computation runs synchronously in the scroll listener rather than deferred via requestAnimationFrame — happy-dom's rAF resolves via async setImmediate, which would not fire before the pre-authored synchronous SIG-03 tests assert
+- [Phase 02]: attachScrollReversal resets maxScrollY/thresholdCrossed on every call (not just first attach) — fixes cross-test module-state pollution and matches real SPA-navigation semantics (fresh scroll session per route)
+- [Phase 02]: Added a minimal initSignalCapture stub in Plan 02-02 (ahead of its Plan 02-03 assignment) so tests/signal.test.js's single import statement resolves — a missing named export would fail the whole test file's module load
 
 ### Pending Todos
 
@@ -104,6 +108,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-14T13:12:22.325Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-signal-capture-layer/02-CONTEXT.md
+Last session: 2026-07-14T13:29:29.123Z
+Stopped at: Completed 02-02-PLAN.md
+Resume file: None

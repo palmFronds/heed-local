@@ -18,11 +18,11 @@ Requirements for initial release. Each maps to a roadmap phase. Per PROJECT.md, 
 
 ### Signals
 
-- [ ] **SIG-01**: Touch hesitation — `touchstart` timer, held-touch threshold (default 800ms) distinguishes hesitation from a normal tap (<300ms)
-- [ ] **SIG-02**: Blur without completion — input focus → blur with no value change emits `blur_incomplete`
-- [ ] **SIG-03**: Scroll reversal — scroll past configurable depth threshold (default 40% viewport) then reverse emits `scroll_reversal`
+- [x] **SIG-01**: Touch hesitation — `touchstart` timer, held-touch threshold (default 800ms) distinguishes hesitation from a normal tap (<300ms)
+- [x] **SIG-02**: Blur without completion — input focus → blur with no value change emits `blur_incomplete`
+- [x] **SIG-03**: Scroll reversal — scroll past configurable depth threshold (default 40% viewport) then reverse emits `scroll_reversal`
 - [ ] **SIG-04**: Back intent — `popstate` while `flowComplete` is false emits `back_intent`
-- [ ] **SIG-05**: All signal payloads are geometry/timing only — `{ type, targetSelector, bbox, timestamp }`, no field values, no identity
+- [x] **SIG-05**: All signal payloads are geometry/timing only — `{ type, targetSelector, bbox, timestamp }`, no field values, no identity
 - [ ] **SIG-06**: SPA re-attachment — MutationObserver on `document.body` + popstate listener, both gated on pathname change, idempotent re-attachment via WeakSet tracking, no double-firing
 
 ### Inference
@@ -82,11 +82,11 @@ Explicitly excluded. Documented to prevent scope creep.
 | CFG-02 | Phase 1 | Complete |
 | BUS-01 | Phase 1 | Complete |
 | TEST-01 | Phase 1 | Complete |
-| SIG-01 | Phase 2 | Pending |
-| SIG-02 | Phase 2 | Pending |
-| SIG-03 | Phase 2 | Pending |
+| SIG-01 | Phase 2 | Complete |
+| SIG-02 | Phase 2 | Complete |
+| SIG-03 | Phase 2 | Complete |
 | SIG-04 | Phase 2 | Pending |
-| SIG-05 | Phase 2 | Pending |
+| SIG-05 | Phase 2 | Complete |
 | SIG-06 | Phase 2 | Pending |
 | INF-01 | Phase 3 | Pending |
 | INF-02 | Phase 3 | Pending |

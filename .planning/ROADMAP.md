@@ -75,13 +75,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. Every emitted signal payload contains only geometry/timing fields — no field values, no user identity, confirmed by code inspection of the payload-construction path.
   6. Simulating 3+ consecutive SPA route changes re-attaches listeners exactly once per navigation via WeakSet-keyed idempotency, with no duplicate signal firing and no missed re-attachment.
 
-**Plans**: 1/4 plans executed
+**Plans**: 2/4 plans executed
 
 Plans:
 **Wave 1**
 
 - [x] 02-01-PLAN.md — Wave-0 RED test suites (SIG-01..06) + config schema signals extension (D-05)
-- [ ] 02-02-PLAN.md — src/signal.js core: buildPayload choke point, touch hesitation, blur incomplete, scroll reversal (SIG-01/02/03/05)
+- [x] 02-02-PLAN.md — src/signal.js core: buildPayload choke point, touch hesitation, blur incomplete, scroll reversal (SIG-01/02/03/05)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -160,7 +160,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Config Layer, Bus & Standalone Test Harness | 5/5 | Complete   | 2026-07-12 |
-| 2. Signal Capture Layer | 1/4 | In Progress|  |
+| 2. Signal Capture Layer | 2/4 | In Progress|  |
 | 3. Inference Layer | 0/TBD | Not started | - |
 | 4. Response Overlay & Logging | 0/TBD | Not started | - |
 | 5. Weight-Push Learning Loop | 0/TBD | Not started | - |
