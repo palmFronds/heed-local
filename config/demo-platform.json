@@ -9,5 +9,14 @@
     "confirmCta": "[data-heed=\"confirm-cta\"]",
     "backBtn": "[data-heed=\"back-btn\"]",
     "flowComplete": "[data-heed=\"flow-complete\"]"
+  },
+  "signals": {
+    "touchHesitation": {
+      "thresholdMs": 800
+    },
+    "scrollReversal": {
+      "depthThresholdPct": 0.4,
+      "minReversalDeltaPx": 50
+    }
   }
 }

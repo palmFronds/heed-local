@@ -25,6 +25,24 @@
         "backBtn": { "type": "string" },
         "flowComplete": { "type": "string" }
       }
+    },
+    "signals": {
+      "type": "object",
+      "properties": {
+        "touchHesitation": {
+          "type": "object",
+          "properties": {
+            "thresholdMs": { "type": "number" }
+          }
+        },
+        "scrollReversal": {
+          "type": "object",
+          "properties": {
+            "depthThresholdPct": { "type": "number" },
+            "minReversalDeltaPx": { "type": "number" }
+          }
+        }
+      }
     }
   }
 }
