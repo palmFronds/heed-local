@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 2
 current_phase_name: Signal Capture Layer
 status: executing
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-07-14T13:29:29.136Z"
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-07-14T13:42:43.934Z"
 last_activity: 2026-07-14
 last_activity_desc: Phase 2 execution started
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 9
-  completed_plans: 7
+  completed_plans: 8
   percent: 17
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-09)
 ## Current Position
 
 Phase: 2 (Signal Capture Layer) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-07-14 — Phase 2 execution started
 
@@ -61,6 +61,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 01 P05 | 1min | 1 tasks | 0 files |
 | Phase 02 P01 | 10min | 3 tasks | 4 files |
 | Phase 02-signal-capture-layer P02 | 9min | 3 tasks | 1 files |
+| Phase 02-signal-capture-layer P03 | 12min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,8 @@ Recent decisions affecting current work:
 - [Phase 02]: Scroll-reversal computation runs synchronously in the scroll listener rather than deferred via requestAnimationFrame — happy-dom's rAF resolves via async setImmediate, which would not fire before the pre-authored synchronous SIG-03 tests assert
 - [Phase 02]: attachScrollReversal resets maxScrollY/thresholdCrossed on every call (not just first attach) — fixes cross-test module-state pollution and matches real SPA-navigation semantics (fresh scroll session per route)
 - [Phase 02]: Added a minimal initSignalCapture stub in Plan 02-02 (ahead of its Plan 02-03 assignment) so tests/signal.test.js's single import statement resolves — a missing named export would fail the whole test file's module load
+- [Phase 2]: checkFlowComplete checks element visibility (style.display !== 'none'), not mere DOM presence, before latching flowCompleteFlag true
+- [Phase 2]: attachListeners resets flowCompleteFlag at the top of every attach pass (mirrors attachScrollReversal's per-attach-pass reset from Plan 02-02) to avoid cross-test/cross-navigation stale-flag pollution
 
 ### Pending Todos
 
@@ -108,6 +111,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-14T13:29:29.123Z
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-07-14T13:42:43.917Z
+Stopped at: Completed 02-03-PLAN.md
 Resume file: None
