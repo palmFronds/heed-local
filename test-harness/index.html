@@ -96,7 +96,14 @@
 <!-- Screen 4: success -->
 <section class="screen">
   <h2>Screen 4 — Success</h2>
-  <div class="success-marker" data-heed="flow-complete">Flow complete</div>
+  <!-- Starts hidden (display: none), matching tests/signal.test.js's shared
+       fixture pattern: this static harness renders all screens
+       simultaneously (no real screen-based routing), so without this the
+       completion element would resolve as "visible" on signal.js's very
+       first attach pass, latching flowCompleteFlag true immediately and
+       making back_intent structurally unable to ever fire (D-06, SIG-04) —
+       found via tests/e2e/harness.spec.js's back_intent assertion. -->
+  <div class="success-marker" data-heed="flow-complete" style="display: none;">Flow complete</div>
 </section>
 
 <!-- Pitfall 7 (02-RESEARCH.md): scroll-height filler so a real/simulated
