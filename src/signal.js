@@ -105,6 +105,92 @@ export function wireTouchHesitation(el, selectorValue, config) {
 }
 
 /**
+ * Wires the blur-incomplete detector for amountInput (SIG-02, D-03, D-04).
+ * D-04: amountInput is the only input element in the flow, so this is wired
+ * for exactly one selector key.
+ * @param {Element} el
+ * @param {string} selectorValue
+ */
+export function wireBlurIncomplete(el, selectorValue) {
+  el.addEventListener('blur', () => {
+    // SIG-05 firewall: el.value is read ONLY to decide whether to publish —
+    // this boolean never reaches buildPayload, and buildPayload's
+    // blur_incomplete branch never reads el.value itself. D-03: final-value
+    // diff at blur time only — empty at blur = incomplete, regardless of
+    // whether a non-empty value existed earlier in the element's lifecycle.
+    const isEmpty = el.value === '';
+    if (isEmpty) {
+      publish('signal:detected', buildPayload('blur_incomplete', { el, targetSelector: selectorValue }));
+    }
+  });
+}
+
+// Module-scoped scroll-reversal state (SIG-03, D-05). window is a singleton
+// for the lifetime of a real page load, so these are safe as module-level
+// variables in production; attachScrollReversal's re-entrancy guard below
+// prevents accumulating duplicate `scroll` listeners on repeat
+// attachListeners calls (e.g. after a Plan 02-03 SPA re-attachment pass).
+let maxScrollY = 0;
+let thresholdCrossed = false;
+let scrollListenerAttached = false;
+
+function checkScrollReversal(config) {
+  const depthThresholdPct = config.signals?.scrollReversal?.depthThresholdPct ?? 0.4;
+  const minReversalDeltaPx = config.signals?.scrollReversal?.minReversalDeltaPx ?? 50;
+
+  const scrollY = window.scrollY;
+  const viewportHeight = window.innerHeight;
+  const depthPct = scrollY / viewportHeight;
+
+  if (scrollY > maxScrollY) {
+    maxScrollY = scrollY;
+    if (depthPct >= depthThresholdPct) thresholdCrossed = true;
+    return;
+  }
+
+  // scrollY <= maxScrollY: potentially reversing.
+  if (thresholdCrossed && maxScrollY - scrollY >= minReversalDeltaPx) {
+    publish('signal:detected', buildPayload('scroll_reversal', { scrollDepth: depthPct }));
+    thresholdCrossed = false; // one emission per down-then-up cycle; re-arms on next descent
+  }
+}
+
+/**
+ * Wires the window-level scroll-reversal detector (SIG-03, D-05). The
+ * `scroll` listener itself is attached at most once (scrollListenerAttached
+ * guard) — window is a singleton, so a repeat attachListeners call (e.g.
+ * Plan 02-03's SPA re-attachment) must not accumulate a second listener.
+ * maxScrollY/thresholdCrossed ARE reset on every call, though: a fresh
+ * attachListeners pass represents a new scroll "session" — the initial page
+ * load, or (once Plan 02-03 wires SPA re-attachment) a new route the user
+ * has just landed on with a fresh scroll position — so any baseline
+ * established before this call is stale and must not leak forward.
+ * @param {*} config
+ */
+export function attachScrollReversal(config) {
+  maxScrollY = 0;
+  thresholdCrossed = false;
+
+  if (scrollListenerAttached) return;
+  scrollListenerAttached = true;
+
+  // Computed synchronously inside the scroll listener, NOT deferred through
+  // requestAnimationFrame. 02-RESEARCH.md's Pattern originally suggested an
+  // rAF-coalescing wrapper (a real per-frame performance optimization in a
+  // live browser), but happy-dom implements requestAnimationFrame via
+  // Node's setImmediate (verified by direct source inspection of
+  // node_modules/happy-dom/lib/window/BrowserWindow.js) — an async macrotask
+  // that would not have run by the time tests/signal.test.js's synchronous
+  // SIG-03 `it()` blocks assert, since they dispatch 'scroll' events and
+  // check `received` in the same synchronous tick with no await. Deferring
+  // via rAF would make the pre-authored RED tests unobservably async and
+  // fail every run. Synchronous computation is correctness-equivalent (each
+  // `scroll` event is still cheap: two window reads + a few comparisons) and
+  // keeps the listener itself `{ passive: true }`.
+  window.addEventListener('scroll', () => checkScrollReversal(config), { passive: true });
+}
+
+/**
  * Entry point that wires the DOM-element/window signal handlers. Extended in
  * Plan 02-03 with back-intent/SPA-reattachment wiring (WeakSet idempotency,
  * MutationObserver, cached flowComplete flag) — this plan wires only the
@@ -120,7 +206,12 @@ export function attachListeners(config) {
     if (TOUCH_HESITATION_SELECTOR_KEYS.includes(selectorKey)) {
       wireTouchHesitation(el, selectorValue, config);
     }
+    // D-04: blur monitoring is wired only for amountInput.
+    if (selectorKey === 'amountInput') {
+      wireBlurIncomplete(el, selectorValue);
+    }
   }
+  attachScrollReversal(config);
 }
 
 /**
