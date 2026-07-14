@@ -143,3 +143,7 @@ None - no external service configuration required.
 ---
 *Phase: 02-signal-capture-layer*
 *Completed: 2026-07-14*
+
+## Self-Check: PASSED
+
+All created/modified files found on disk; all four commit hashes (450d257, 4559803, 021a0ef, 0c2e5ed) found in git log.

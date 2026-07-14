@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 01
-current_phase_name: Config Layer, Bus & Standalone Test Harness
+current_phase: 2
+current_phase_name: Signal Capture Layer
 status: executing
 stopped_at: Phase 2 context gathered
-last_updated: "2026-07-14T13:00:16.245Z"
-last_activity: 2026-07-12
-last_activity_desc: 01-05-PLAN.md checkpoint approved, Phase 01 closed out
+last_updated: "2026-07-14T13:13:35.016Z"
+last_activity: 2026-07-14
+last_activity_desc: Phase 2 execution started
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 9
+  completed_plans: 6
   percent: 17
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-09)
 
 **Core value:** All four signal types (touch hesitation, blur incomplete, scroll reversal, back intent) are captured cleanly and fed through a correctly implemented 2-layer feedforward net that produces a real probability distribution over intent classes — not a lookup table wearing a neural network's clothes.
-**Current focus:** Phase 01 — Config Layer, Bus & Standalone Test Harness
+**Current focus:** Phase 2 — Signal Capture Layer
 
 ## Current Position
 
-Phase: 01 (Config Layer, Bus & Standalone Test Harness) — COMPLETE
-Plan: 5 of 5 complete
+Phase: 2 (Signal Capture Layer) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-07-12 — 01-05-PLAN.md checkpoint approved, Phase 01 closed out
+Last activity: 2026-07-14 — Phase 2 execution started
 
 Progress: [██░░░░░░░░] 17%
 
@@ -59,6 +59,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 01 P02 | 3min | 2 tasks | 3 files |
 | Phase 01 P04 | 4min | 2 tasks | 3 files |
 | Phase 01 P05 | 1min | 1 tasks | 0 files |
+| Phase 02 P01 | 10min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,9 @@ Recent decisions affecting current work:
 - [Phase 01]: src/index.js re-exports publish/subscribe as top-level named exports (not only nested in init()'s return) so window.Heed.publish/subscribe work directly from the harness debug panel
 - [Phase 01]: Debug-panel signal-to-element mapping follows CONTRACT.md's documented Branch-2-targets-per-selector table: touch_hesitation/blur_incomplete -> amount-input, scroll_reversal -> fee-row, back_intent -> back-btn
 - [Phase 01]: Phase 01 (Config Layer, Bus & Standalone Test Harness) gate-passed: human operator confirmed in a real browser that all 7 data-heed selectors resolve and all 4 signal types produce logged, PII-free bus receipts (TEST-01)
+- [Phase 02]: Scroll-reversal RED tests stub window.innerHeight/scrollY via Object.defineProperty (not window.scrollTo()) — happy-dom has no real layout engine (02-RESEARCH.md Pitfall 5)
+- [Phase 02]: SIG-06 idempotency tests use blur_incomplete (synchronous, no timer) as the re-attachment probe instead of touch_hesitation, keeping tests/signal-spa.test.js free of vi.useFakeTimers() (happy-dom#2097)
+- [Phase 02]: SIG-01 through SIG-06 intentionally left unmarked in requirements-completed after Plan 02-01 — this Wave-0 plan only authors RED tests encoding them; they flip GREEN and get marked complete in Plans 02/03 (mirrors Phase-1 precedent)
 
 ### Pending Todos
 
@@ -100,6 +104,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-14T03:53:00.089Z
+Last session: 2026-07-14T13:12:22.325Z
 Stopped at: Phase 2 context gathered
 Resume file: .planning/phases/02-signal-capture-layer/02-CONTEXT.md
