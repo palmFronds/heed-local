@@ -155,3 +155,7 @@ None - no external service configuration required.
 ---
 *Phase: 02-signal-capture-layer*
 *Completed: 2026-07-14*
+
+## Self-Check: PASSED
+
+`src/signal.js`, `src/index.js` found on disk; `.planning/phases/02-signal-capture-layer/02-03-SUMMARY.md` found on disk; all four commit hashes (8189add, 14fb28d, 0adf6e3, 8b6b40c) found in git log.
