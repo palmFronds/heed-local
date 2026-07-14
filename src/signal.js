@@ -61,6 +61,49 @@ export function resolveTargets(config) {
   return targets;
 }
 
+// D-02: touch-hesitation monitoring is CTA-scoped only — feeRow/
+// minReceivedRow are scroll-past targets, not hold targets; users scroll
+// past those, they don't hold them, so monitoring them would be noise.
+const TOUCH_HESITATION_SELECTOR_KEYS = ['proceedCta', 'confirmCta', 'backBtn'];
+
+/**
+ * Wires the live-firing hold timer for a single CTA element (SIG-01, D-01).
+ * D-01: fires LIVE via a single setTimeout while still held, not
+ * retrospectively on touchend — real-time intervention is the entire point.
+ * Pitfall 1: there is deliberately no second "<300ms tap" check; the single
+ * timer produces tap-rejection for free — anything released before the timer
+ * elapses (at 50ms or 750ms) never fires, no separate threshold needed.
+ * @param {Element} el
+ * @param {string} selectorValue
+ * @param {*} config
+ */
+export function wireTouchHesitation(el, selectorValue, config) {
+  const thresholdMs = config.signals?.touchHesitation?.thresholdMs ?? 800;
+  let timerId = null;
+
+  function start() {
+    timerId = setTimeout(() => {
+      timerId = null; // consumed — a later touchend/touchcancel is now a no-op, not a second emission
+      publish('signal:detected', buildPayload('touch_hesitation', { el, targetSelector: selectorValue }));
+    }, thresholdMs);
+  }
+
+  function cancel() {
+    if (timerId !== null) {
+      clearTimeout(timerId);
+      timerId = null;
+    }
+  }
+
+  // { passive: true } on every touch listener — this SDK never calls
+  // preventDefault() and never blocks the host page's default touch/scroll
+  // behavior (Anti-Patterns, 02-RESEARCH.md).
+  el.addEventListener('touchstart', start, { passive: true });
+  el.addEventListener('touchend', cancel, { passive: true });
+  el.addEventListener('touchcancel', cancel, { passive: true });
+  el.addEventListener('touchmove', cancel, { passive: true }); // any movement cancels intent to hold
+}
+
 /**
  * Entry point that wires the DOM-element/window signal handlers. Extended in
  * Plan 02-03 with back-intent/SPA-reattachment wiring (WeakSet idempotency,
@@ -70,7 +113,14 @@ export function resolveTargets(config) {
  * @param {*} config
  */
 export function attachListeners(config) {
-  resolveTargets(config);
+  const targets = resolveTargets(config);
+  for (const { el, selectorKey, selectorValue } of targets) {
+    // D-02 scope: only proceedCta/confirmCta/backBtn get touch-hesitation
+    // wiring — feeRow/minReceivedRow are excluded (see const comment above).
+    if (TOUCH_HESITATION_SELECTOR_KEYS.includes(selectorKey)) {
+      wireTouchHesitation(el, selectorValue, config);
+    }
+  }
 }
 
 /**
