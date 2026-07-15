@@ -68,19 +68,22 @@ coverage:
   - id: D4
     description: "Human confirms in a real/emulated mobile viewport that press-and-hold, blur-without-typing, scroll-down-then-up, and back-intent each produce exactly one PII-free receipt, closing Phase 2's gate (Task 3)"
     requirement: "SIG-01, SIG-02, SIG-03, SIG-04"
-    verification: []
+    verification:
+      - kind: other
+        ref: "GATE SKIPPED BY OWNER DECISION (2026-07-15) — the manual mobile-viewport walkthrough was not performed. Owner cited the automated Playwright E2E suite (4/4, D3) and unit suite (26/26) as equivalent coverage across all four signal types and both negative cases (D-03 typed-then-cleared, D-05 scroll jitter). Note: the Playwright run only exercises touch_hesitation end-to-end with the debug panel; the D-03/D-05 negative cases and the blur/scroll/back_intent PII field-by-field human review described in the plan's <how-to-verify> were not independently re-run as part of this decision — this is a scope reduction accepted by the project owner, not a claim that the full manual checklist was executed."
+        status: skipped
     human_judgment: true
-    rationale: "Task 3 is a checkpoint:human-verify gate (gate=\"blocking\") that requires an actual human operator interacting with a real/emulated mobile browser — a Playwright headless run (D3) cannot substitute for real touch/tap/scroll input fidelity per 02-RESEARCH.md's fidelity note. This plan execution stopped at Task 3 per its explicit objective (do not resolve the checkpoint automatically); the checkpoint has NOT yet been approved as of this SUMMARY."
+    rationale: "Task 3 is a checkpoint:human-verify gate (gate=\"blocking\") that per plan design requires an actual human operator interacting with a real/emulated mobile browser — a Playwright headless run (D3) does not, on its own terms, substitute for real touch/tap/scroll input fidelity per 02-RESEARCH.md's fidelity note. The project owner explicitly overrode this gate rather than performing the walkthrough, judging the existing automated coverage sufficient. Recorded here verbatim so the audit trail does not read as a completed human verification."
 
 # Metrics
-duration: 8min (Tasks 1-2 only; Task 3 pending)
-completed: 2026-07-14
-status: paused
+duration: 8min (Tasks 1-2 automated); Task 3 gate skipped by owner decision, not executed
+completed: 2026-07-15
+status: complete (gate skipped by owner)
 ---
 
-# Phase 2 Plan 4: Debug-Panel Real-Event Rewiring and Playwright E2E Proof Summary (PARTIAL — Task 3 checkpoint pending)
+# Phase 2 Plan 4: Debug-Panel Real-Event Rewiring and Playwright E2E Proof Summary
 
-**Rewired test-harness/index.html's debug-panel buttons to dispatch real TouchEvent/FocusEvent/scroll/PopStateEvent instances into signal.js's actual listeners (D-08), added scroll-height filler for the 40% threshold, and authored the project's first Playwright E2E suite proving all 4 signal types produce PII-free #log receipts in a real headless browser — Task 3's human-verify checkpoint (closing Phase 2) remains unresolved.**
+**Rewired test-harness/index.html's debug-panel buttons to dispatch real TouchEvent/FocusEvent/scroll/PopStateEvent instances into signal.js's actual listeners (D-08), added scroll-height filler for the 40% threshold, and authored the project's first Playwright E2E suite proving all 4 signal types produce PII-free #log receipts in a real headless browser. Task 3's human-verify checkpoint (closing Phase 2) was skipped by explicit project-owner decision on 2026-07-15 rather than completed — see the "Task 3 Resolution" section below.**
 
 ## Performance
 
@@ -104,9 +107,24 @@ Each completed task was committed atomically:
 
 1. **Task 1: Rewire debug-panel buttons to dispatch real DOM events and add scroll-height filler (D-08, Pitfall 7)** - `03a52fe` (feat)
 2. **Task 2: Scaffold Playwright config and author the D-08 real-browser E2E spec** - `36de01e` (feat)
-3. **Task 3: Human-verify the rewired harness end-to-end (checkpoint:human-verify)** - NOT STARTED. This is a blocking gate requiring a real human operator in a real/emulated mobile browser; execution stopped here per this plan's explicit objective (do not fabricate or auto-resolve this checkpoint).
+3. **Task 3: Human-verify the rewired harness end-to-end (checkpoint:human-verify)** - SKIPPED BY OWNER DECISION (2026-07-15). No manual walkthrough was performed; see "Task 3 Resolution" below.
 
-**Plan metadata:** _pending_ (docs commit will follow once Task 3 is approved and the plan is fully complete)
+## Task 3 Resolution
+
+The `checkpoint:human-verify` gate was not executed. During execution, a separate diagnostic
+investigation (initiated by the project owner, working from the browser to trace a suspected
+bus-duplication bug) exercised `touch_hesitation` end-to-end via a real headless-Chromium
+Playwright run with temporary debug `console.log` statements — that investigation concluded the
+signal path works correctly and the logs were removed afterward (`dist/sdk.js` rebuilt clean). It
+did not, however, cover the full Task 3 checklist (blur/scroll/back_intent, the D-03/D-05 negative
+cases, or the field-by-field PII review across all four signal types).
+
+The project owner then explicitly decided to skip Task 3's manual walkthrough entirely, citing the
+existing automated coverage (`npx vitest run` 26/26, `npx playwright test` 4/4) as sufficient. This
+is recorded verbatim as an owner override, not as a completed human verification — see the `D4`
+coverage entry above for the full rationale.
+
+**Plan metadata:** complete (gate skipped by explicit owner decision, not approved via the checklist)
 
 ## Files Created/Modified
 
@@ -164,15 +182,15 @@ None - no external service configuration required. Task 3, when resumed, require
 
 ## Next Phase Readiness
 
-**This plan is NOT complete.** Task 3 (`checkpoint:human-verify`, `gate="blocking"`) has not been executed — it requires an actual human operator to open `test-harness/index.html` in a real/emulated mobile browser and manually confirm the 4-signal-type + D-03/D-05 negative-case checklist in the plan's `<how-to-verify>` section. This SUMMARY documents Tasks 1-2 only, per this execution's explicit instruction not to fabricate or auto-resolve the checkpoint.
+**This plan is complete.** Tasks 1-2 executed and verified automatically; Task 3 (`checkpoint:human-verify`, `gate="blocking"`) was skipped by explicit project-owner decision on 2026-07-15 rather than completed via its manual checklist — see "Task 3 Resolution" above and the `D4` coverage entry for the full record.
 
-- All automated preconditions for Task 3 are green: `npm run build` succeeds, `npx vitest run` is 26/26, `npx playwright test` is 4/4.
-- Once a human operator provides the "approved" resume-signal (or reports a failure), a continuation agent should: (a) record the outcome, (b) if approved, mark this plan fully complete (advance STATE.md's plan counter, mark SIG-01 through SIG-05 complete in REQUIREMENTS.md, update this SUMMARY's `status` to `complete` and its `coverage` D4 entry's `verification`/`status`), and (c) since Task 3 closes Phase 2 per the plan's objective, also update ROADMAP.md's Phase 2 status.
-- No blockers for Phase 3 (inference.js) beyond Phase 2's own gate — `src/signal.js` is already feature-complete and unit-tested (Plan 02-03); this plan's remaining work is verification/proof, not new signal-capture logic.
+- All automated coverage cited in the owner's skip decision is green: `npm run build` succeeds, `npx vitest run` is 26/26, `npx playwright test` is 4/4.
+- Phase 2's gate is now closed on that basis. `src/signal.js` and `src/index.js` are feature-complete and unit-tested (Plan 02-03); `test-harness/index.html`'s debug panel exercises the real capture path (D-08, this plan).
+- No blockers for Phase 3 (inference.js).
 
 ---
 *Phase: 02-signal-capture-layer*
-*Completed: 2026-07-14 (Tasks 1-2 only — Task 3 pending)*
+*Completed: 2026-07-15 (Tasks 1-2 automated; Task 3 gate skipped by owner decision)*
 
 ## Self-Check: PASSED
 
