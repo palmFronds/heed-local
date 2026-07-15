@@ -26,7 +26,7 @@ from Branch 1's build status; only the final phase requires Branch 1 live.
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Config Layer, Bus & Standalone Test Harness** - Config-driven selector targeting, a pub/sub bus, and a static test harness that unblocks every later phase from Branch 1's build status (completed 2026-07-12)
-- [ ] **Phase 2: Signal Capture Layer** - All 4 signal types captured cleanly, SPA-safe, and emitted as PII-free payloads onto the bus
+- [x] **Phase 2: Signal Capture Layer** - All 4 signal types captured cleanly, SPA-safe, and emitted as PII-free payloads onto the bus (completed 2026-07-15)
 - [ ] **Phase 3: Inference Layer** - A genuine, explicitly hand-written forward pass classifies signals into 4 intent classes, gated by confidence, improved by a real session-end learning update
 - [ ] **Phase 4: Response Overlay & Logging** - Confidence-gated inference results render as one of 4 non-blocking overlay responses; every pipeline event is structurally logged
 - [ ] **Phase 5: Weight-Push Learning Loop** - Session-end weight updates persist locally and are picked up on the next cold start, closing the learning loop across sessions
@@ -75,7 +75,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. Every emitted signal payload contains only geometry/timing fields — no field values, no user identity, confirmed by code inspection of the payload-construction path.
   6. Simulating 3+ consecutive SPA route changes re-attaches listeners exactly once per navigation via WeakSet-keyed idempotency, with no duplicate signal firing and no missed re-attachment.
 
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans complete
 
 Plans:
 **Wave 1**
@@ -89,7 +89,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 02-04-PLAN.md — D-08 harness rewiring, Playwright E2E, human-verify phase gate
+- [x] 02-04-PLAN.md — D-08 harness rewiring, Playwright E2E, human-verify phase gate
 
 ### Phase 3: Inference Layer — Forward Pass, Confidence Gate & Cold-Start Weights
 
@@ -160,7 +160,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Config Layer, Bus & Standalone Test Harness | 5/5 | Complete   | 2026-07-12 |
-| 2. Signal Capture Layer | 3/4 | In Progress|  |
+| 2. Signal Capture Layer | 4/4 | Complete   | 2026-07-15 |
 | 3. Inference Layer | 0/TBD | Not started | - |
 | 4. Response Overlay & Logging | 0/TBD | Not started | - |
 | 5. Weight-Push Learning Loop | 0/TBD | Not started | - |
