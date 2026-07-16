@@ -60,6 +60,10 @@ Deferred to future release. Tracked but not in current roadmap.
 
 - **INF-V2-01**: Session-level multi-signal correlation — classify intent from a sequence of signals within a session rather than one signal event at a time (flagged by features research as the natural next increment once the single-event net and weight-push loop are proven)
 
+### Signals
+
+- **SIG-V2-01**: `back_intent`'s payload carries the raw `window.location.pathname` unfiltered (D-07). Flagged by Phase 2 code review (WR-03) as a theoretical tension with CLAUDE.md's unconditional "No PII ever" rule if a real partner's routing scheme embeds identifiers/tokens in the URL path (e.g. `/tx/abc123`, `/reset/<token>`). Accepted as-is for this harness — `demo-platform.json`'s routes are static screen names with no embedded identifiers, so there is no actual leak in this project's current scope. Before onboarding a real partner pilot, revisit: allow-list known-safe route segments or hash/truncate the pathname before publishing.
+
 ## Out of Scope
 
 Explicitly excluded. Documented to prevent scope creep.
