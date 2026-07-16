@@ -24,16 +24,16 @@ exists to prove it's built right.
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] Signal 1 — touch hesitation: touchstart timer, held-touch threshold (default 800ms) distinguishes hesitation from a normal tap (<300ms) — Validated in Phase 2: Signal Capture Layer
+- [x] Signal 2 — blur without completion: input focus → blur with no value change emits `blur_incomplete` — Validated in Phase 2: Signal Capture Layer
+- [x] Signal 3 — scroll reversal: scroll past configurable depth threshold (default 40% viewport) then reverse emits `scroll_reversal` — Validated in Phase 2: Signal Capture Layer
+- [x] Signal 4 — back intent: `popstate` while `flowComplete` is false emits `back_intent` — Validated in Phase 2: Signal Capture Layer
+- [x] All signal payloads are geometry/timing only — `{ type, targetSelector, bbox, timestamp }`, no field values, no identity — Validated in Phase 2: Signal Capture Layer
+- [x] Internal event bus carries signals from signal.js to inference.js with no signal leaving the browser except the session-end weight push — Validated in Phase 1: Config Layer, Bus & Standalone Test Harness (BUS-01); Phase 2 confirmed signal.js publishes through this same bus end-to-end
+- [x] SPA re-attachment: MutationObserver on `document.body` + popstate listener, both gated on pathname change, idempotent re-attachment via WeakSet tracking — no double-firing — Validated in Phase 2: Signal Capture Layer
 
 ### Active
 
-- [ ] Signal 1 — touch hesitation: touchstart timer, held-touch threshold (default 800ms) distinguishes hesitation from a normal tap (<300ms)
-- [ ] Signal 2 — blur without completion: input focus → blur with no value change emits `blur_incomplete`
-- [ ] Signal 3 — scroll reversal: scroll past configurable depth threshold (default 40% viewport) then reverse emits `scroll_reversal`
-- [ ] Signal 4 — back intent: `popstate` while `flowComplete` is false emits `back_intent`
-- [ ] All signal payloads are geometry/timing only — `{ type, targetSelector, bbox, timestamp }`, no field values, no identity
-- [ ] Internal event bus carries signals from signal.js to inference.js with no signal leaving the browser except the session-end weight push
 - [ ] 2-layer feedforward net: 4-node input → 4-node hidden (ReLU) → 4-node softmax output over {confusion, price_doubt, trust_gap, flow_friction}
 - [ ] Forward pass implemented explicitly (W1/b1 → ReLU → W2/b2 → softmax) — not abstracted behind a black-box call without understanding each step
 - [ ] Confidence threshold gate (default 0.65) — no response fires below threshold
@@ -44,7 +44,6 @@ exists to prove it's built right.
 - [ ] All 4 response types implemented: tooltip, nudge_copy, discount_offer (fires `postMessage` to host, does not fulfill the offer itself), social_proof
 - [ ] Config layer: `config/schema.json` (documented schema) + `config/demo-platform.json` (targets the 7 locked `data-heed` selectors from CONTRACT.md)
 - [ ] Config validation hard-fails on invalid schema
-- [ ] SPA re-attachment: MutationObserver on `document.body` + popstate listener, both gated on pathname change, idempotent re-attachment via WeakSet tracking — no double-firing
 - [ ] Logging layer: every entry `{ ts, sessionId, partnerId, event, data }`, event types `signal_detected | inference_run | response_fired | response_dismissed | flow_complete | flow_abandoned`, emitted via `console.log('[heed]', JSON.stringify(entry))`
 - [ ] Standalone local test harness (static HTML, not the real Next.js app) exposing all 7 `data-heed` selectors so every signal type can be manually triggered without a running Branch 1
 - [ ] Real local weight-push receiver: minimal local server accepts the session-end POST, persists the updated weight array to a local JSON file, and `sdk.js` cold-start reads that file if present (falling back to the structured-guess weights otherwise) — closes the learning loop across sessions
@@ -90,4 +89,4 @@ exists to prove it's built right.
 | esbuild used as a dev-only build tool to produce the single flat `sdk.js`; partner integration remains zero-build, one `<script>` tag | Reconciles CLAUDE.md's "no bundler" rule (meant for the SDK/partner surface) with the mechanical reality that combining hand-written code + exported weights into one file needs some build step for the Heed team | ✓ Good |
 
 ---
-*Last updated: 2026-07-09 after initialization*
+*Last updated: 2026-07-16 — Phase 2 (Signal Capture Layer) complete: SIG-01 through SIG-06 validated*
