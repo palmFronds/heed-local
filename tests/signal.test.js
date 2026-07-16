@@ -81,6 +81,31 @@ describe('SIG-01', () => {
     const hesitations = received.filter((p) => p.type === 'touch_hesitation');
     expect(hesitations).toHaveLength(0);
   });
+
+  it('does not fire a stray second touch_hesitation when a duplicate touchstart interrupts an in-flight hold (code review WR-02 regression)', () => {
+    // Without the re-entrancy guard, a second touchstart before the first
+    // timer resolves overwrites the closured timerId, orphaning the first
+    // timer (it keeps running, uncancellable) — both timers eventually fire,
+    // producing two publishes instead of one.
+    attachListeners(demoConfig);
+    const received = [];
+    collectReceived((payload) => received.push(payload));
+
+    const cta = getEl('proceedCta');
+    const touch1 = new Touch({ identifier: 1, target: cta, clientX: 0, clientY: 0 });
+    dispatchTouch(cta, 'touchstart', touch1);
+
+    vi.advanceTimersByTime(100); // t=100: first timer (armed at t=0) still pending
+    const touch2 = new Touch({ identifier: 2, target: cta, clientX: 0, clientY: 0 });
+    dispatchTouch(cta, 'touchstart', touch2); // stray duplicate touchstart
+
+    vi.advanceTimersByTime(700); // t=800 total — the orphaned first timer's original fire time
+    expect(received.filter((p) => p.type === 'touch_hesitation')).toHaveLength(0);
+
+    vi.advanceTimersByTime(101); // t=901 total — second timer (armed at t=100, +800ms) fires
+    const hesitations = received.filter((p) => p.type === 'touch_hesitation');
+    expect(hesitations).toHaveLength(1); // exactly one, not two
+  });
 });
 
 describe('SIG-02', () => {
@@ -191,6 +216,55 @@ describe('SIG-04', () => {
 
     const backIntents = received.filter((p) => p.type === 'back_intent');
     expect(backIntents).toHaveLength(0);
+  });
+
+  it('still fires back_intent when the completion element is hidden via a CSS class rather than an inline style (code review CR-01 regression)', () => {
+    // Regression for CR-01: checkFlowComplete must read computed style, not
+    // el.style (inline-only) — a real partner page is far more likely to
+    // hide the completion screen via a CSS class than an inline style, and
+    // el.style.display would misread such a page as already-visible on the
+    // very first attach pass, permanently disabling back_intent.
+    const style = document.createElement('style');
+    style.textContent = '.heed-test-hidden { display: none; }';
+    document.head.appendChild(style);
+
+    const flowComplete = getEl('flowComplete');
+    flowComplete.removeAttribute('style'); // no inline style at all
+    flowComplete.classList.add('heed-test-hidden'); // hidden via CSS class only
+
+    initSignalCapture(demoConfig);
+    const received = [];
+    collectReceived((payload) => received.push(payload));
+
+    window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
+
+    expect(received.filter((p) => p.type === 'back_intent')).toHaveLength(1);
+
+    document.head.removeChild(style);
+  });
+
+  it('does not fire on popstate once the completion element becomes visible via a CSS class toggle (not inline style)', () => {
+    const style = document.createElement('style');
+    style.textContent = '.heed-test-hidden { display: none; }';
+    document.head.appendChild(style);
+
+    const flowComplete = getEl('flowComplete');
+    flowComplete.removeAttribute('style');
+    flowComplete.classList.add('heed-test-hidden');
+
+    initSignalCapture(demoConfig);
+    const received = [];
+    collectReceived((payload) => received.push(payload));
+
+    // Simulate the completion screen appearing via a class toggle, the
+    // common real-SPA pattern (React className swap, etc.) — not inline style.
+    flowComplete.classList.remove('heed-test-hidden');
+
+    window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
+
+    expect(received.filter((p) => p.type === 'back_intent')).toHaveLength(0);
+
+    document.head.removeChild(style);
   });
 });
 

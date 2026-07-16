@@ -82,6 +82,12 @@ export function wireTouchHesitation(el, selectorValue, config) {
   let timerId = null;
 
   function start() {
+    // Re-entrancy guard (code review WR-02): a stray duplicate touchstart or
+    // multi-touch on the same element before a prior touchend/touchcancel
+    // would otherwise overwrite timerId and orphan the first timer — it
+    // would keep running unobserved (cancel() can no longer reach it) and
+    // fire a second, unwanted touch_hesitation publish later, after release.
+    if (timerId !== null) clearTimeout(timerId);
     timerId = setTimeout(() => {
       timerId = null; // consumed — a later touchend/touchcancel is now a no-op, not a second emission
       publish('signal:detected', buildPayload('touch_hesitation', { el, targetSelector: selectorValue }));
@@ -215,21 +221,27 @@ let flowCompleteFlag = false;
  * as VISIBLE — never clears it once true (this function only ever sets it,
  * it does not reset it; see attachListeners' reset comment below for why a
  * separate reset path exists at the attach-pass boundary instead). Checks
- * `el.style.display !== 'none'` rather than mere presence in the DOM: a real
- * SPA route swap would remove the completion element from the DOM entirely
- * when it isn't the active screen, but this project's shared test fixture
- * (and potentially a real partner page using CSS-based show/hide instead of
- * conditional rendering) keeps the element present with `display: none`
+ * `getComputedStyle(el).display !== 'none'` rather than mere presence in the
+ * DOM: a real SPA route swap would remove the completion element from the
+ * DOM entirely when it isn't the active screen, but this project's shared
+ * test fixture (and potentially a real partner page using CSS-based
+ * show/hide instead of conditional rendering) keeps the element present
  * until the completion screen is actually reached — treating mere presence
  * as "resolved" would latch the flag true on the very first attach pass,
- * before the completion screen has genuinely appeared.
+ * before the completion screen has genuinely appeared. Computed style (not
+ * `el.style`, which only reflects the inline `style=` attribute) is used
+ * deliberately — a real partner is far more likely to hide the element via a
+ * CSS class or stylesheet rule than an inline style, and `el.style.display`
+ * would silently misread such a page as already-visible on the very first
+ * attach pass, permanently disabling back_intent for the session (code
+ * review CR-01).
  * @param {*} config
  */
 function checkFlowComplete(config) {
   if (flowCompleteFlag) return; // once true, this function never clears it (D-06)
   const selector = config.selectors?.flowComplete ?? config.completionSelector;
   const el = document.querySelector(selector);
-  if (el && el.style.display !== 'none') {
+  if (el && getComputedStyle(el).display !== 'none') {
     flowCompleteFlag = true;
   }
 }
