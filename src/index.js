@@ -4,6 +4,7 @@
 import { validateConfig } from './config.js';
 import { publish, subscribe } from './bus.js';
 import { initSignalCapture } from './signal.js';
+import { initInference } from './inference.js';
 import schema from '../config/schema.json';
 import demoConfig from '../config/demo-platform.json';
 
@@ -22,8 +23,13 @@ export function init(rawConfig) {
   // instrument the DOM against an unvalidated config, mirroring the note
   // above that an invalid config must stop initialization entirely (CFG-02).
   initSignalCapture(config);
+  // Inference wiring attaches only AFTER hard-fail validation passes too —
+  // same reasoning as initSignalCapture above: never subscribe the forward
+  // pass to signal:detected against a partially-valid config.
+  initInference(config);
   // Return shape stays exactly { config, publish, subscribe } — signal
-  // capture is side-effecting, not a returned value (no new key added here).
+  // capture and inference wiring are side-effecting, not returned values
+  // (no new key added here).
   return { config, publish, subscribe };
 }
 
