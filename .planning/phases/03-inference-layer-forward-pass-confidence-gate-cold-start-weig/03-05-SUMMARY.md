@@ -37,32 +37,33 @@ key-decisions:
 
 patterns-established: []
 
-requirements-completed: []
+requirements-completed: [INF-01, INF-02, INF-03, INF-05]
 
 coverage: []
 
 # Metrics
-duration: 4min (Tasks 1-2 only; Task 3 checkpoint pending)
-completed: PENDING (checkpoint not yet resolved)
-status: checkpoint_pending
+duration: 6min (Tasks 1-3, including checkpoint resolution)
+completed: 2026-07-17
+status: complete
 ---
 
-# Phase 3 Plan 5: Inference Integration & Bundle Purity Summary (PARTIAL — checkpoint pending)
+# Phase 3 Plan 5: Inference Integration & Bundle Purity Summary
 
-**init() now wires initInference end-to-end; dist/sdk.js confirmed brain.js-free (13.3kb); Success Criterion 2's 4 canonical softmax margins (0.23-0.33) and one 70/30 ambiguous input (0.12, genuinely uncertain) all pass an automated numeric gate — human-verify checkpoint (Task 3) not yet resolved**
+**init() now wires initInference end-to-end; dist/sdk.js confirmed brain.js-free (13.3kb, 13628 bytes); Success Criterion 2's 4 canonical softmax margins (0.25-0.29) and one 70/30 ambiguous input (0.11, genuinely uncertain) all pass an automated numeric gate; human-verify checkpoint (Task 3) approved — Phase 3 closed**
 
 ## Performance
 
-- **Duration:** ~4 min (Tasks 1-2)
+- **Duration:** ~6 min (Tasks 1-3)
 - **Started:** 2026-07-16T23:14:03-04:00 (first commit after prior plan)
-- **Tasks:** 2 of 3 complete (Task 3 is a blocking human-verify checkpoint, not yet reached/resolved)
-- **Files modified:** 3 (1 modified, 2 new)
+- **Tasks:** 3 of 3 complete
+- **Files modified:** 4 (2 modified — src/index.js, admin/weights.js regenerated during checkpoint verification; 2 new)
 
 ## Accomplishments
 - `src/index.js`'s `init()` now calls `initInference(config)` immediately after `initSignalCapture(config)`, preserving hard-fail-first ordering (`validateConfig` throws first); return shape unchanged (`{ config, publish, subscribe }`)
 - `admin/check-bundle-purity.mjs` built and passing: `npm run build` produces a 13.3kb `dist/sdk.js`, and the purity check confirms zero occurrences of `NeuralNetworkGPU`/`thaw` — brain.js is confirmed confined to `admin/generate-weights.mjs`, never reaching the shipped bundle
-- `admin/print-softmax-margins.mjs` built and passing: all 4 canonical cold-start mappings classify to their correct domain-knowledge class with real margins (0.2344-0.3327, all >= the 0.05 gate, all top-probs < 0.98 non-saturated), and the deliberately ambiguous 70/30 blended input (`[0.7, 0.3, 0, 0]`, per 03-RESEARCH.md Assumption A2) shows a distinct, non-collapsed margin of 0.1222 — genuine uncertainty, not identical to any single canonical output
-- Full test suite (`npx vitest run`) stays green at 40/40 across both task commits
+- `admin/print-softmax-margins.mjs` built and passing: all 4 canonical cold-start mappings classify to their correct domain-knowledge class with real margins, and the deliberately ambiguous 70/30 blended input (`[0.7, 0.3, 0, 0]`, per 03-RESEARCH.md Assumption A2) shows a distinct, non-collapsed margin — genuine uncertainty, not identical to any single canonical output
+- Full test suite (`npx vitest run`) stays green at 40/40 across all task commits
+- Human-verify checkpoint (Task 3) approved: operator re-ran `npm run generate-weights` (producing a fresh, non-reproducible-by-design weight set), re-ran `node admin/print-softmax-margins.mjs`, and ran `npm test` — all confirmed passing
 
 ## Task Commits
 
@@ -70,15 +71,24 @@ Each task was committed atomically:
 
 1. **Task 1: Wire initInference into src/index.js's init(); verify brain.js never reaches dist/sdk.js** - `f7d36b6` (feat)
 2. **Task 2: Build admin/print-softmax-margins.mjs — Success Criterion 2's explicit margin-quality gate** - `9a98b2e` (feat)
+3. **Task 3 (checkpoint:human-verify, gate="blocking"): APPROVED.** No files modified by the task's own action (pure verification gate); the human operator's `npm run generate-weights` run produced a regenerated `admin/weights.js`, committed alongside this finalized SUMMARY as part of closing the plan.
 
-**Task 3 (checkpoint:human-verify, gate="blocking"): NOT YET REACHED/RESOLVED.** This plan stops here per its `autonomous: false` frontmatter and the explicit checkpoint protocol — a human must run `npm run generate-weights` + `node admin/print-softmax-margins.mjs`, visually confirm the printed vectors, and run `npm test` before this plan (and Phase 3) can close.
-
-**Plan metadata:** not yet committed (deferred until Task 3 resolves and the plan fully completes)
+**Fresh re-verification run (this continuation, post-approval), confirming current disk state independent of the prior partial run's cached numbers:**
+- `npm run build` — succeeds, `dist/sdk.js` is 13.3kb
+- `node admin/check-bundle-purity.mjs` — PASS, 13628 bytes, zero brain.js internals
+- `node admin/print-softmax-margins.mjs` — PASS, all 4 canonical gates pass:
+  - touch_hesitation → confusion, top prob 0.4569, margin 0.2707
+  - blur_incomplete → flow_friction, top prob 0.4952, margin 0.2921
+  - scroll_reversal → price_doubt, top prob 0.4410, margin 0.2535
+  - back_intent → trust_gap, top prob 0.4979, margin 0.2919
+  - ambiguous (70/30 touch_hesitation/blur_incomplete) → confusion, top prob 0.3712, margin 0.1095 (not gated, printed for human inspection — genuinely non-collapsed uncertainty, distinct from any single canonical output)
+- `npx vitest run` — 40/40 tests passing across 8 test files
 
 ## Files Created/Modified
 - `src/index.js` - Modified. Imports and calls `initInference(config)` inside `init()`, after `initSignalCapture(config)`.
 - `admin/check-bundle-purity.mjs` - New. Dev-only Node ESM script; reads `dist/sdk.js`, exits 1 if it contains brain.js internals (`NeuralNetworkGPU`, `thaw`), exits 0 with byte size otherwise.
 - `admin/print-softmax-margins.mjs` - New. Dev-only Node ESM script; prints and numerically gates the 5 softmax-margin stress vectors (4 canonical + 1 ambiguous) required by Success Criterion 2.
+- `admin/weights.js` - Modified. Regenerated by the human operator during Task 3's checkpoint verification (`npm run generate-weights`); non-deterministic by design (brain.js training uses random init) but re-verified correct via the margin gate above before committing.
 
 ## Decisions Made
 - `CLASSES`/`SIGNAL_ORDER` are not exported from `src/inference.js` (contrary to this plan's `read_first` assumption that they were). Rather than widen `src/inference.js`'s export surface — outside this task's declared `<files>` scope (`admin/print-softmax-margins.mjs` only) — the same literal values are re-declared locally in the verification script, matching `src/inference.js`'s module-scoped constants exactly.
@@ -108,26 +118,19 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 
-**This plan is NOT complete.** Task 3 is a blocking `checkpoint:human-verify` gate (`gate="blocking"`) that closes both this plan and Phase 3. Per this session's explicit execution instructions, the checkpoint was not auto-approved or fabricated — it is being returned to the orchestrator as a structured checkpoint for a real human to resolve.
+**This plan is complete.** Task 3's `checkpoint:human-verify` gate (`gate="blocking"`) was approved by the human operator, who ran `npm run generate-weights` + `node admin/print-softmax-margins.mjs` + `npm test`, confirmed all 4 canonical mappings win with a real (non-saturated, non-uniform) margin, confirmed the ambiguous input shows genuine non-collapsed uncertainty, and confirmed the full test suite is green. This continuation agent independently re-ran the same verification commands fresh against current disk state (not relying on cached numbers) and confirmed identical PASS results (see "Fresh re-verification run" above).
 
-**What the human needs to do (Task 3's `<how-to-verify>`):**
-1. Run `npm run generate-weights` followed by `node admin/print-softmax-margins.mjs` and read the printed output for all 5 vectors.
-2. Confirm each of the 4 canonical softmax vectors shows the correct class winning with a visually real margin (roughly 0.15-0.40 range) — not saturated (~1.0/0.0) and not uniform (~0.25 each).
-3. Confirm the ambiguous 70/30 blended input's output looks like genuine, non-collapsed uncertainty (not identical to any single canonical vector's output).
-4. Run `npm test` (full suite) and confirm every test passes, including `tests/inference.test.js` and `tests/inference-endsession.test.js`.
-
-**Note on `npm run generate-weights` non-determinism:** re-running it (as the checkpoint instructs) will produce numerically different (but expected-to-be-equally-correct) weights than the ones already committed and verified in this session (0.2344-0.3327 canonical margins, 0.1222 ambiguous margin) — per 03-01-SUMMARY.md's established precedent, this is expected, not a bug; correctness is judged by shape/margin/classification checks, not byte-for-byte stability.
-
-Once a human types "approved" (or describes issues to fix), a continuation agent should resume at Task 3, complete the checkpoint, run the final `<verification>` block, and only then finalize this SUMMARY.md's frontmatter (`status: complete`, `completed:` date, `requirements-completed:` — INF-01/02/03/05 are already marked complete in REQUIREMENTS.md from plan 03-03, so no further requirement-marking action is needed here), commit the plan metadata, and close Phase 3.
+Phase 3 (Inference Layer — Forward Pass, Confidence Gate, Cold-Start Weights) is now fully executed and closed. INF-01, INF-02, INF-03, and INF-05 are complete (INF-04 was completed in plan 03-04). The next phase in the roadmap can begin.
 
 ---
 *Phase: 03-inference-layer-forward-pass-confidence-gate-cold-start-weig*
-*Completed: PENDING — checkpoint:human-verify (Task 3) awaiting resolution*
+*Completed: 2026-07-17*
 
 ## Self-Check: PASSED
 
 - FOUND: src/index.js (modified)
 - FOUND: admin/check-bundle-purity.mjs
 - FOUND: admin/print-softmax-margins.mjs
+- FOUND: admin/weights.js (regenerated during checkpoint verification)
 - FOUND: f7d36b6 (feat(03-05): wire initInference into init() and verify bundle purity)
 - FOUND: 9a98b2e (feat(03-05): build print-softmax-margins.mjs -- Success Criterion 2 gate)
