@@ -226,3 +226,28 @@ export function initInference(config) {
     });
   });
 }
+
+/**
+ * D-03: directly-callable, unit-testable session-end trigger. Performs
+ * EXACTLY ONE bounded weight update (INF-04) — never call this per-event;
+ * Phase 4 owns wiring the real flow_complete/flow_abandoned trigger, this
+ * phase only exposes this function and verifies it via direct unit-test
+ * invocation with a synthetic outcome. Safe no-op if no signal has fired
+ * this session (lastInference is null). Does NOT reset lastInference after
+ * running — a second endSession call with the same lastInference against
+ * the now-updated activeWeights is expected to produce a second, distinct,
+ * non-zero delta (03-RESEARCH.md's empirically-verified "two independent
+ * single steps" train() semantics), not a no-op.
+ * @param {*} config - reserved for a future config-driven learning-rate
+ *   override; unused this phase (learning rate is hard-coded to 0.01 per
+ *   INF-04's explicit requirement)
+ * @param {boolean} outcome - true if flowComplete, false if abandoned
+ */
+export function endSession(config, outcome) {
+  if (!lastInference) return; // no signal fired this session — nothing to reinforce
+
+  const target = buildTarget(lastInference.predictedIdx, outcome);
+  // Hand-rolled single gradient step — brain.js is NOT imported here, keeping it fully out of
+  // the shipped bundle (PROJECT.md: training/weight-export only; 03-RESEARCH.md Pitfall #4).
+  activeWeights = gradientStep(lastInference.input, target, activeWeights, 0.01);
+}
