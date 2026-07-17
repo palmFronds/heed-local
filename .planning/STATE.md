@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 current_phase: 3
-current_phase_name: Inference Layer — Forward Pass, Confidence Gate & Cold-Start Weights
+current_phase_name: Inference Layer
 status: executing
 stopped_at: Phase 3 context gathered (--auto)
-last_updated: "2026-07-16T21:07:26.421Z"
-last_activity: 2026-07-16
-last_activity_desc: Phase 2 complete, transitioned to Phase 3
+last_updated: "2026-07-17T02:46:37.275Z"
+last_activity: 2026-07-17
+last_activity_desc: Phase 3 execution started
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 14
+  completed_plans: 10
   percent: 33
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-09)
 
 **Core value:** All four signal types (touch hesitation, blur incomplete, scroll reversal, back intent) are captured cleanly and fed through a correctly implemented 2-layer feedforward net that produces a real probability distribution over intent classes — not a lookup table wearing a neural network's clothes.
-**Current focus:** Phase 2 — Signal Capture Layer
+**Current focus:** Phase 3 — Inference Layer
 
 ## Current Position
 
-Phase: 3 — Inference Layer — Forward Pass, Confidence Gate & Cold-Start Weights
-Plan: Not started
+Phase: 3 (Inference Layer) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
-Last activity: 2026-07-16 — Phase 2 complete, transitioned to Phase 3
+Last activity: 2026-07-17 — Phase 3 execution started
 
 Progress: [██░░░░░░░░] 17%
 
@@ -62,6 +62,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 02 P01 | 10min | 3 tasks | 4 files |
 | Phase 02-signal-capture-layer P02 | 9min | 3 tasks | 1 files |
 | Phase 02-signal-capture-layer P03 | 12min | 3 tasks | 2 files |
+| Phase 03 P01 | 12min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,8 @@ Recent decisions affecting current work:
 - [Phase 02]: Added a minimal initSignalCapture stub in Plan 02-02 (ahead of its Plan 02-03 assignment) so tests/signal.test.js's single import statement resolves — a missing named export would fail the whole test file's module load
 - [Phase 2]: checkFlowComplete checks element visibility (style.display !== 'none'), not mere DOM presence, before latching flowCompleteFlag true
 - [Phase 2]: attachListeners resets flowCompleteFlag at the top of every attach pass (mirrors attachScrollReversal's per-attach-pass reset from Plan 02-02) to avoid cross-test/cross-navigation stale-flag pollution
+- [Phase 03]: brain.js pinned to exact 2.0.0-beta.24 (no caret range) per D-04 -- npm install initially wrote a caret range, corrected by hand-editing package.json
+- [Phase 03]: admin/weights.js regenerated once more during the plan's final verification pass (brain.js training uses random init, output is non-reproducible byte-for-byte); re-verified correctness before committing the final version
 
 ### Pending Todos
 
@@ -111,6 +114,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-16T21:07:26.410Z
+Last session: 2026-07-17T02:44:29.014Z
 Stopped at: Phase 3 context gathered (--auto)
 Resume file: .planning/phases/03-inference-layer-forward-pass-confidence-gate-cold-start-weig/03-CONTEXT.md

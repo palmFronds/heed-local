@@ -31,7 +31,7 @@ Requirements for initial release. Each maps to a roadmap phase. Per PROJECT.md, 
 - [ ] **INF-02**: Forward pass implemented explicitly in `sdk.js` (W1/b1 → ReLU → W2/b2 → softmax) reading weight arrays exported from brain.js training — not a brain.js `.run()` black-box call at inference time
 - [ ] **INF-03**: Confidence threshold gate (default 0.65) — no response fires below threshold
 - [ ] **INF-04**: Weight update fires once at session end (not per-event), outcome label from `flowComplete`, learning rate 0.01
-- [ ] **INF-05**: Cold-start weights encode the domain-knowledge mapping (touch_hesitation→confusion, blur_incomplete→flow_friction, scroll_reversal→price_doubt, back_intent→trust_gap) and are used when no learned weights exist yet
+- [x] **INF-05**: Cold-start weights encode the domain-knowledge mapping (touch_hesitation→confusion, blur_incomplete→flow_friction, scroll_reversal→price_doubt, back_intent→trust_gap) and are used when no learned weights exist yet
 
 ### Response
 
@@ -96,7 +96,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | INF-02 | Phase 3 | Pending |
 | INF-03 | Phase 3 | Pending |
 | INF-04 | Phase 3 | Pending |
-| INF-05 | Phase 3 | Pending |
+| INF-05 | Phase 3 | Complete |
 | RESP-01 | Phase 4 | Pending |
 | RESP-02 | Phase 4 | Pending |
 | RESP-03 | Phase 4 | Pending |
