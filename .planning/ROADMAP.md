@@ -104,7 +104,25 @@ Plans:
   4. At session end, exactly one weight update fires — never per-event — using the session's `flowComplete` value as the outcome label and a learning rate of 0.01, confirmed by inspecting weights before and after a single synthetic session.
   5. With no learned-weights file present, `sdk.js` cold-starts from the domain-knowledge weight arrays; with one present, it loads and uses those instead.
 
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+**Wave 0**
+
+- [ ] 03-01-PLAN.md — brain.js devDependency, config schema extension, cold-start weight generator (admin/generate-weights.mjs, admin/weights.js) (INF-05)
+- [ ] 03-02-PLAN.md — RED unit test suites for INF-01 through INF-05 (tests/inference.test.js, tests/inference-endsession.test.js)
+
+**Wave 1** *(blocked on Wave 0 completion)*
+
+- [ ] 03-03-PLAN.md — Hand-written forward pass, confidence gate, cold-start loading (src/inference.js: relu/softmax/forwardPass/initInference) (INF-01, INF-02, INF-03, INF-05)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 03-04-PLAN.md — Session-end weight update (src/inference.js: gradientStep/buildTarget/endSession) (INF-04)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 03-05-PLAN.md — index.js wiring, bundle-purity check, softmax-margin phase gate (Success Criterion 2), human-verify checkpoint (INF-01, INF-02, INF-03, INF-05)
 
 ### Phase 4: Response Overlay & Logging
 
@@ -161,7 +179,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Config Layer, Bus & Standalone Test Harness | 5/5 | Complete   | 2026-07-12 |
 | 2. Signal Capture Layer | 4/4 | Complete    | 2026-07-15 |
-| 3. Inference Layer | 0/TBD | Not started | - |
+| 3. Inference Layer | 0/5 | Planned | - |
 | 4. Response Overlay & Logging | 0/TBD | Not started | - |
 | 5. Weight-Push Learning Loop | 0/TBD | Not started | - |
 | 6. Integration Verification Against Live Branch 1 | 0/TBD | Not started | - |
