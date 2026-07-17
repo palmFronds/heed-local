@@ -27,9 +27,9 @@ Requirements for initial release. Each maps to a roadmap phase. Per PROJECT.md, 
 
 ### Inference
 
-- [ ] **INF-01**: 2-layer feedforward net: 4-node input → 4-node hidden (ReLU) → 4-node softmax output over {confusion, price_doubt, trust_gap, flow_friction}
-- [ ] **INF-02**: Forward pass implemented explicitly in `sdk.js` (W1/b1 → ReLU → W2/b2 → softmax) reading weight arrays exported from brain.js training — not a brain.js `.run()` black-box call at inference time
-- [ ] **INF-03**: Confidence threshold gate (default 0.65) — no response fires below threshold
+- [x] **INF-01**: 2-layer feedforward net: 4-node input → 4-node hidden (ReLU) → 4-node softmax output over {confusion, price_doubt, trust_gap, flow_friction}
+- [x] **INF-02**: Forward pass implemented explicitly in `sdk.js` (W1/b1 → ReLU → W2/b2 → softmax) reading weight arrays exported from brain.js training — not a brain.js `.run()` black-box call at inference time
+- [x] **INF-03**: Confidence threshold gate (default 0.65) — no response fires below threshold
 - [ ] **INF-04**: Weight update fires once at session end (not per-event), outcome label from `flowComplete`, learning rate 0.01
 - [x] **INF-05**: Cold-start weights encode the domain-knowledge mapping (touch_hesitation→confusion, blur_incomplete→flow_friction, scroll_reversal→price_doubt, back_intent→trust_gap) and are used when no learned weights exist yet
 
@@ -92,9 +92,9 @@ Explicitly excluded. Documented to prevent scope creep.
 | SIG-04 | Phase 2 | Complete |
 | SIG-05 | Phase 2 | Complete |
 | SIG-06 | Phase 2 | Complete |
-| INF-01 | Phase 3 | Pending |
-| INF-02 | Phase 3 | Pending |
-| INF-03 | Phase 3 | Pending |
+| INF-01 | Phase 3 | Complete |
+| INF-02 | Phase 3 | Complete |
+| INF-03 | Phase 3 | Complete |
 | INF-04 | Phase 3 | Pending |
 | INF-05 | Phase 3 | Complete |
 | RESP-01 | Phase 4 | Pending |
