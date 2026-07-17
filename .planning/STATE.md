@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 3
 current_phase_name: Inference Layer
 status: executing
-stopped_at: Phase 3 context gathered (--auto)
-last_updated: "2026-07-17T03:06:12.513Z"
+stopped_at: Completed 03-04-PLAN.md
+last_updated: "2026-07-17T03:13:24.677Z"
 last_activity: 2026-07-17
 last_activity_desc: Phase 3 execution started
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 14
-  completed_plans: 12
+  completed_plans: 13
   percent: 33
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-09)
 ## Current Position
 
 Phase: 3 (Inference Layer) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-07-17 — Phase 3 execution started
 
@@ -65,6 +65,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 03 P01 | 12min | 2 tasks | 6 files |
 | Phase 03 P02 | 20min | 2 tasks | 2 files |
 | Phase 03 P03 | 6min | 2 tasks | 1 files |
+| Phase 03 P04 | 2min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,9 @@ Recent decisions affecting current work:
 - [Phase 03]: admin/weights.js regenerated once more during the plan's final verification pass (brain.js training uses random init, output is non-reproducible byte-for-byte); re-verified correctness before committing the final version
 - [Phase ?]: [Phase 03] tests/inference.test.js and tests/inference-endsession.test.js author RED suites for INF-01..05 with hand-authored in-file weight fixtures (no admin/weights.js import), keeping Wave-0 test authorship independent of plan 03-01's generated artifact
 - [Phase ?]: Included bbox/targetSelector/scrollDepth/pathname as additive pass-through fields on inference:result (03-RESEARCH.md Open Question #2's recommended resolution) -- additive only, does not alter D-01's locked payload shape
+- [Phase ?]: [Phase 03] buildTarget implements 03-RESEARCH.md Assumption A1 verbatim: one-hot reinforcement of predicted class on session abandonment, uniform 0.25 softening on completion -- documented interpretation, not literal spec text
+- [Phase ?]: [Phase 03] endSession's learning rate is hard-coded to the literal 0.01 (INF-04's explicit requirement); the config parameter is reserved for a future config-driven override and intentionally unused this phase
+- [Phase ?]: [Phase 03] endSession does not reset lastInference after running -- a second call against the now-updated activeWeights produces a second, independent, non-zero delta, matching 03-RESEARCH.md's empirically-verified train() single-step semantics
 
 ### Pending Todos
 
@@ -118,6 +122,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-17T03:05:32.343Z
-Stopped at: Phase 3 context gathered (--auto)
-Resume file: .planning/phases/03-inference-layer-forward-pass-confidence-gate-cold-start-weig/03-CONTEXT.md
+Last session: 2026-07-17T03:13:24.658Z
+Stopped at: Completed 03-04-PLAN.md
+Resume file: None
