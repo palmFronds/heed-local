@@ -229,6 +229,29 @@ describe('INF-03', () => {
     expect(Math.max(...result.probs)).toBeGreaterThanOrEqual(0.65);
     expect(result.fires).toBe(true);
   });
+
+  it('a SECOND initInference() call with a different confidenceThreshold actually takes effect (code review CR-01 regression)', () => {
+    // Without the fix, the signal:detected handler (registered only once,
+    // on the first-ever initInference() call across this whole test file)
+    // closes over the FIRST call's config -- so a later call's
+    // confidenceThreshold would be silently ignored even though
+    // activeWeights correctly updates.
+    const received = collectInferenceResults();
+
+    // First init: an impossibly strict threshold (1.01) that no real
+    // softmax output can ever reach -- fires must be false.
+    initInference({ inference: { weights: HIGH_CONFIDENCE_WEIGHTS, confidenceThreshold: 1.01 } });
+    publish('signal:detected', touchHesitationSignal());
+    expect(received[received.length - 1].fires).toBe(false);
+
+    // Second init on the SAME weights, but a permissive threshold (0.0) --
+    // if CR-01 is fixed, this call's threshold must be the one actually
+    // used; if the bug is present, the handler still uses 1.01 and fires
+    // stays false.
+    initInference({ inference: { weights: HIGH_CONFIDENCE_WEIGHTS, confidenceThreshold: 0.0 } });
+    publish('signal:detected', touchHesitationSignal());
+    expect(received[received.length - 1].fires).toBe(true);
+  });
 });
 
 describe('INF-05', () => {
@@ -264,5 +287,15 @@ describe('INF-05', () => {
     expect(result).toBeDefined();
     expect(result.probs).toHaveLength(4);
     expect(Math.abs(sum(result.probs) - 1)).toBeLessThan(1e-6);
+  });
+
+  it('hard-fails on a malformed injected config.inference.weights instead of silently producing NaN (code review WR-01 regression)', () => {
+    // Without validateWeightsShape, a missing W2 would silently propagate
+    // NaN through forwardPass -> softmax -> argmax (which always resolves
+    // to index 0 for all-NaN input) rather than failing loudly at init time
+    // -- exactly the "silent partial config" CFG-02 elsewhere in this
+    // codebase explicitly rejects.
+    const malformed = { W1: GENERIC_WEIGHTS.W1, b1: GENERIC_WEIGHTS.b1 }; // missing W2/b2
+    expect(() => initInference({ inference: { weights: malformed, confidenceThreshold: 0.65 } })).toThrow();
   });
 });

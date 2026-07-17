@@ -84,14 +84,49 @@ function argmax(arr) {
   return best;
 }
 
+/**
+ * Hard-fail shape validation for an externally (config-)injected weights
+ * object — mirrors CFG-02's "hard-fail, never partial/silent" philosophy
+ * (code review WR-01). Without this, a malformed injected weights object
+ * would silently produce NaN through forwardPass, which argmax always
+ * resolves to index 0 for — a silent, consistent misclassification instead
+ * of a loud, immediate error. Never called against the bundled
+ * admin/weights.js default, which is trusted/generated internally.
+ * @param {*} weights
+ */
+function validateWeightsShape(weights) {
+  const isMatrix = (m, rows, cols) =>
+    Array.isArray(m) &&
+    m.length === rows &&
+    m.every((row) => Array.isArray(row) && row.length === cols && row.every((w) => typeof w === 'number' && Number.isFinite(w)));
+  const isVector = (v, len) => Array.isArray(v) && v.length === len && v.every((x) => typeof x === 'number' && Number.isFinite(x));
+
+  if (!weights || typeof weights !== 'object') {
+    throw new Error('[heed] config.inference.weights must be an object with W1/b1/W2/b2');
+  }
+  if (!isMatrix(weights.W1, 4, 4)) throw new Error('[heed] config.inference.weights.W1 must be a 4x4 numeric array');
+  if (!isVector(weights.b1, 4)) throw new Error('[heed] config.inference.weights.b1 must be a 4-element numeric array');
+  if (!isMatrix(weights.W2, 4, 4)) throw new Error('[heed] config.inference.weights.W2 must be a 4x4 numeric array');
+  if (!isVector(weights.b2, 4)) throw new Error('[heed] config.inference.weights.b2 must be a 4-element numeric array');
+}
+
 // INF-05: cold-start default until config injects learned weights. Reset on
 // every initInference() call (config-injected wins over the bundled
 // default), mirroring signal.js's existing per-call state-reset precedent
 // (attachListeners resets flowCompleteFlag every call).
 let activeWeights = coldStartWeights;
+// Whole config object, reassigned on every initInference() call — read by
+// the signal:detected handler below instead of closing over the `config`
+// parameter directly, so confidenceThreshold (not just activeWeights)
+// actually updates on repeat calls (code review CR-01 fix).
+let activeConfig = null;
 // Remembers the last prediction so plan 03-04's endSession (called later,
 // with no signal payload of its own) has an input to train on — mirrors
-// signal.js's lastPathname/flowCompleteFlag module-state pattern.
+// signal.js's lastPathname/flowCompleteFlag module-state pattern. Reset on
+// every initInference() call (code review WR-03 fix) so a later re-init
+// starts with a genuinely clean "no signal fired yet this session" state —
+// otherwise a stale prior-session lastInference could feed the NEXT
+// session's endSession() before any new signal has fired.
 let lastInference = null;
 // Guards the one-time signal:detected subscription (mirrors
 // initSignalCapture's observer/popstate double-registration guard) — repeat
@@ -126,6 +161,12 @@ function reluDerivative(h) {
  * @returns {number[]} 4-element target vector
  */
 export function buildTarget(predictedIdx, outcome) {
+  // Hard-fail on an unrecognized outcome rather than silently treating it as
+  // "completed successfully" (code review WR-02) — matches this codebase's
+  // established CFG-02 "hard-fail, never partial/silent" philosophy.
+  if (typeof outcome !== 'boolean') {
+    throw new TypeError('[heed] buildTarget: outcome must be a boolean (true = completed, false = abandoned)');
+  }
   if (outcome === false) {
     // Abandoned: the predicted intent likely WAS the real blocker — reinforce it directly.
     return CLASSES.map((_, i) => (i === predictedIdx ? 1 : 0));
@@ -178,9 +219,10 @@ export function gradientStep(input, target, weights, learningRate) {
 /**
  * SDK entry point for the inference layer: loads cold-start (or
  * config-injected) weights and wires signal:detected -> forward pass ->
- * confidence gate -> inference:result. Safe to call repeatedly — weights are
- * re-resolved every call (INF-05), but the bus subscription is registered at
- * most once.
+ * confidence gate -> inference:result. Safe to call repeatedly — weights,
+ * the confidence threshold, and the last-inference session state are all
+ * re-resolved/reset every call (INF-05; code review CR-01/WR-03 fixes), but
+ * the bus subscription itself is registered at most once.
  * @param {*} config
  */
 export function initInference(config) {
@@ -189,7 +231,16 @@ export function initInference(config) {
   // persisted file; this phase only reads it. Re-evaluated EVERY call (not
   // just the first) so a later initInference(config) with fresh weights
   // takes effect immediately.
+  if (config.inference?.weights) validateWeightsShape(config.inference.weights); // WR-01
   activeWeights = config.inference?.weights ?? coldStartWeights;
+  // CR-01 fix: reassigned every call so the signal:detected handler below
+  // (registered only once) reads a live confidenceThreshold instead of a
+  // value frozen from whichever call first registered the subscription.
+  activeConfig = config;
+  // WR-03 fix: a fresh (re-)init starts with no "signal fired yet this
+  // session" state — otherwise a stale prior session's lastInference could
+  // silently feed the NEW session's first endSession() call.
+  lastInference = null;
 
   if (initialized) return; // never stack a second signal:detected subscription
   initialized = true;
@@ -199,7 +250,7 @@ export function initInference(config) {
     const { probs } = forwardPass(input, activeWeights);
     const predictedIdx = argmax(probs);
     const confidence = probs[predictedIdx];
-    const threshold = config.inference?.confidenceThreshold ?? 0.65;
+    const threshold = activeConfig.inference?.confidenceThreshold ?? 0.65;
     const fires = confidence >= threshold;
 
     lastInference = { input, predictedIdx }; // remembered for plan 03-04's endSession

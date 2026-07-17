@@ -104,4 +104,32 @@ describe('INF-04', () => {
     const probsAfterSecondEndSession = received[received.length - 1].probs;
     expect(probsAfterSecondEndSession).not.toEqual(probsAfterFirstEndSession);
   });
+
+  it("a fresh initInference() call resets lastInference so a stale prior session cannot leak into the next session's endSession() (code review WR-03 regression)", () => {
+    const config = { inference: { weights: WEIGHTS, confidenceThreshold: 0.65 } };
+    initInference(config);
+    const received = collectInferenceResults();
+    publish('signal:detected', touchHesitationSignal()); // sets lastInference from THIS session
+
+    // Re-init simulates a new session starting (e.g. a fresh page/session in
+    // the same SDK instance). Without the fix, lastInference would still
+    // hold the PREVIOUS session's signal, and endSession() below would
+    // silently perform a real gradient step using stale data instead of
+    // being the documented no-op for "no signal fired yet this session".
+    initInference(config);
+    endSession(config, false);
+
+    publish('signal:detected', touchHesitationSignal());
+    const result = received[received.length - 1];
+    const expected = forwardPass([1, 0, 0, 0], WEIGHTS);
+    expect(result.probs[0]).toBeCloseTo(expected.probs[0], 9); // weights untouched -- same as fresh WEIGHTS
+  });
+
+  it('endSession/buildTarget hard-fails on a non-boolean outcome instead of silently treating it as success (code review WR-02 regression)', () => {
+    const config = { inference: { weights: WEIGHTS, confidenceThreshold: 0.65 } };
+    initInference(config);
+    publish('signal:detected', touchHesitationSignal()); // seed lastInference so endSession isn't the no-op path
+
+    expect(() => endSession(config, undefined)).toThrow(TypeError);
+  });
 });

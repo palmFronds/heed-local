@@ -6,8 +6,9 @@
   "main": "index.js",
   "scripts": {
     "test": "vitest run",
-    "build": "esbuild src/index.js --bundle --format=iife --global-name=Heed --outfile=dist/sdk.js",
-    "generate-weights": "node admin/generate-weights.mjs"
+    "build": "esbuild src/index.js --bundle --format=iife --global-name=Heed --minify --outfile=dist/sdk.js",
+    "postbuild": "node admin/check-bundle-purity.mjs",
+    "generate-weights": "node admin/generate-weights.mjs && node admin/print-softmax-margins.mjs"
   },
   "repository": {
     "type": "git",
