@@ -43,6 +43,13 @@
           }
         }
       }
+    },
+    "inference": {
+      "type": "object",
+      "properties": {
+        "confidenceThreshold": { "type": "number" },
+        "weights": { "type": "object" }
+      }
     }
   }
 }

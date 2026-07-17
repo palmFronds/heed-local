@@ -6,7 +6,8 @@
   "main": "index.js",
   "scripts": {
     "test": "vitest run",
-    "build": "esbuild src/index.js --bundle --format=iife --global-name=Heed --outfile=dist/sdk.js"
+    "build": "esbuild src/index.js --bundle --format=iife --global-name=Heed --outfile=dist/sdk.js",
+    "generate-weights": "node admin/generate-weights.mjs"
   },
   "repository": {
     "type": "git",
@@ -21,6 +22,7 @@
   "homepage": "https://github.com/palmFronds/heed-local#readme",
   "devDependencies": {
     "@playwright/test": "^1.61.1",
+    "brain.js": "2.0.0-beta.24",
     "esbuild": "^0.28.1",
     "happy-dom": "^20.10.6",
     "vitest": "^4.1.10"
