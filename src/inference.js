@@ -99,6 +99,83 @@ let lastInference = null;
 let initialized = false;
 
 /**
+ * Genuine (non-leaky) ReLU derivative — 1 where the post-activation hidden
+ * value is positive, 0 otherwise (h > 0 iff the pre-activation sum was > 0,
+ * since relu(x) = max(0, x)). Matches forwardPass's genuine ReLU (INF-02);
+ * never the leaky-relu slope used only in admin/generate-weights.mjs's
+ * training-time config (03-RESEARCH.md Pitfall #1) — leaky-relu is a
+ * training-time trick confined to the build-time generator and must never
+ * appear in this runtime backward pass.
+ * @param {number} h - the POST-activation hidden value (relu(x))
+ * @returns {number}
+ */
+function reluDerivative(h) {
+  return h > 0 ? 1 : 0;
+}
+
+/**
+ * Builds a single training target vector from a session outcome, applied to
+ * the last predicted class this session. This is this phase's documented
+ * interpretation of the spec's scalar outcome label (1/0) applied to a
+ * 4-class softmax target (03-RESEARCH.md Assumption A1) — a recommended
+ * default, not literal spec text, mirroring the already-accepted
+ * "most-proximal signal" credit-assignment gap STATE.md flags for Phase 5.
+ * @param {number} predictedIdx
+ * @param {boolean} outcome - true if session completed (flowComplete),
+ *   false if abandoned
+ * @returns {number[]} 4-element target vector
+ */
+export function buildTarget(predictedIdx, outcome) {
+  if (outcome === false) {
+    // Abandoned: the predicted intent likely WAS the real blocker — reinforce it directly.
+    return CLASSES.map((_, i) => (i === predictedIdx ? 1 : 0));
+  }
+  // Completed successfully: whatever intent was predicted did not block the user — soften
+  // confidence in that specific prediction without asserting a different "correct" class.
+  return CLASSES.map(() => 0.25);
+}
+
+/**
+ * ONE hand-written backprop step, mathematically equivalent to brain.js's
+ * own single trainPattern() step for a ReLU network, but with ZERO brain.js
+ * import anywhere in this file (03-RESEARCH.md Common Pitfall #4 —
+ * importing brain.js anywhere reachable from src/index.js's graph would
+ * pull its ~1MB+ unminified UMD bundle into dist/sdk.js, defeating D-04's
+ * "training/weight-export only" decision). Does NOT mutate the `weights`
+ * parameter in place — returns a NEW {W1,b1,W2,b2} object in the same
+ * shape forwardPass consumes, so it can be assigned straight back to
+ * activeWeights.
+ * @param {number[]} input
+ * @param {number[]} target
+ * @param {{W1:number[][], b1:number[], W2:number[][], b2:number[]}} weights
+ * @param {number} learningRate
+ * @returns {{W1:number[][], b1:number[], W2:number[][], b2:number[]}}
+ */
+export function gradientStep(input, target, weights, learningRate) {
+  const { W1, b1, W2, b2 } = weights;
+  const { probs, hidden } = forwardPass(input, weights);
+
+  // Output-layer delta: the standard, exact softmax+cross-entropy gradient with respect to the
+  // logits (matches brain.js's own "error = target - output at the output layer" framing when
+  // probs is treated as that output).
+  const deltaOutput = probs.map((p, j) => p - target[j]);
+
+  // Hidden-layer delta: backpropagate deltaOutput through W2, then apply the GENUINE (non-leaky)
+  // ReLU derivative — consistent with forwardPass's genuine ReLU (INF-02).
+  const deltaHidden = hidden.map((h, i) => {
+    const sum = deltaOutput.reduce((acc, dOut, j) => acc + W2[j][i] * dOut, 0);
+    return sum * reluDerivative(h);
+  });
+
+  const newW2 = W2.map((row, j) => row.map((w, i) => w - learningRate * deltaOutput[j] * hidden[i]));
+  const newB2 = b2.map((b, j) => b - learningRate * deltaOutput[j]);
+  const newW1 = W1.map((row, i) => row.map((w, k) => w - learningRate * deltaHidden[i] * input[k]));
+  const newB1 = b1.map((b, i) => b - learningRate * deltaHidden[i]);
+
+  return { W1: newW1, b1: newB1, W2: newW2, b2: newB2 };
+}
+
+/**
  * SDK entry point for the inference layer: loads cold-start (or
  * config-injected) weights and wires signal:detected -> forward pass ->
  * confidence gate -> inference:result. Safe to call repeatedly — weights are
