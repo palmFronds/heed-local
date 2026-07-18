@@ -16,7 +16,8 @@ function walk(value, schemaNode, path, errors) {
   if (
     schemaNode.type &&
     typeof value !== schemaNode.type &&
-    !(schemaNode.type === 'object' && value !== null && typeof value === 'object')
+    !(schemaNode.type === 'object' && value !== null && typeof value === 'object') &&
+    !(schemaNode.type === 'array' && Array.isArray(value))
   ) {
     errors.push(`${path}: expected type "${schemaNode.type}", got "${typeof value}"`);
     return; // don't recurse into a value whose base type is already wrong
