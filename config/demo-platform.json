@@ -1,6 +1,8 @@
 {
   "platformId": "demo-platform",
   "completionSelector": "[data-heed=\"flow-complete\"]",
+  "activeScreens": ["/swap", "/confirm", "/success"],
+  "partnerOrigin": "http://localhost:3000",
   "selectors": {
     "amountInput": "[data-heed=\"amount-input\"]",
     "feeRow": "[data-heed=\"fee-row\"]",
