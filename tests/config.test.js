@@ -25,6 +25,34 @@ describe('CFG-01', () => {
   });
 });
 
+describe('array type validation', () => {
+  const arraySchema = { type: 'object', properties: { activeScreens: { type: 'array' } } };
+
+  it('does not throw when an array value is validated against a { type: "array" } schema node', () => {
+    expect(() =>
+      validateConfig({ activeScreens: ['/swap', '/confirm'] }, arraySchema)
+    ).not.toThrow();
+  });
+
+  it('hard-fails (throws) when a string is validated against a { type: "array" } schema node', () => {
+    expect(() => validateConfig({ activeScreens: '/swap' }, arraySchema)).toThrow(
+      /expected type "array"/
+    );
+  });
+
+  it('hard-fails (throws) when a number is validated against a { type: "array" } schema node', () => {
+    expect(() => validateConfig({ activeScreens: 42 }, arraySchema)).toThrow(
+      /expected type "array"/
+    );
+  });
+
+  it('hard-fails (throws) when a plain object is validated against a { type: "array" } schema node', () => {
+    expect(() => validateConfig({ activeScreens: { foo: 'bar' } }, arraySchema)).toThrow(
+      /expected type "array"/
+    );
+  });
+});
+
 describe('CFG-02', () => {
   it('hard-fails (throws) when required top-level fields are missing', () => {
     expect(() => validateConfig({ platformId: 'x' }, schema)).toThrow();
