@@ -136,7 +136,30 @@ Plans:
   3. Each of the 4 response types (tooltip, nudge_copy, discount_offer, social_proof) renders correctly for its mapped intent class; `discount_offer` fires a `postMessage` to the host with an explicit target origin and does not itself grant or fulfill the discount.
   4. Every pipeline event type (`signal_detected`, `inference_run`, `response_fired`, `response_dismissed`, `flow_complete`, `flow_abandoned`) produces exactly one structured `console.log('[heed]', JSON.stringify(entry))` line with `{ ts, sessionId, partnerId, event, data }`, emitted only from the logging layer.
 
-**Plans**: TBD
+**Plans**: 6/6 planned
+
+Plans:
+**Wave 0**
+
+- [ ] 04-01-PLAN.md — Config foundation: fix config.js array-type validation bug, add activeScreens/partnerOrigin to schema + demo config (RESP-03, LOG-01)
+- [ ] 04-02-PLAN.md — Wave-0 RED test suites (response.test.js, log.test.js) + stub modules response.js/log.js (RESP-01/02/03, LOG-01)
+
+**Wave 1** *(blocked on Wave 0)*
+
+- [ ] 04-03-PLAN.md — log.js impl (writeLog choke point, activeScreens gate, session-lifecycle wiring D-01/02/03) + signal.js flow:complete publish (LOG-01)
+
+**Wave 2** *(blocked on Wave 1 — response.js shares log.js's isActiveScreen gate)*
+
+- [ ] 04-04-PLAN.md — response.js impl (overlay, clampToViewport, 4 response types, postMessage, D-05 concurrency) + UI-SPEC dismissReason update (RESP-01/02/03)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 04-05-PLAN.md — index.js wiring (sessionId D-08, initLogging/initResponse) + E2E harness additions + bundle rebuild (RESP-01/02/03, LOG-01)
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 04-06-PLAN.md — Human-verify checkpoint: response overlay + logging end-to-end in a real 390px browser (phase gate)
+
 **UI hint**: yes
 
 ### Phase 5: Weight-Push Learning Loop
@@ -180,6 +203,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Config Layer, Bus & Standalone Test Harness | 5/5 | Complete   | 2026-07-12 |
 | 2. Signal Capture Layer | 4/4 | Complete    | 2026-07-15 |
 | 3. Inference Layer | 5/5 | Complete    | 2026-07-17 |
-| 4. Response Overlay & Logging | 0/TBD | Not started | - |
+| 4. Response Overlay & Logging | 0/6 | Planned | - |
 | 5. Weight-Push Learning Loop | 0/TBD | Not started | - |
 | 6. Integration Verification Against Live Branch 1 | 0/TBD | Not started | - |
