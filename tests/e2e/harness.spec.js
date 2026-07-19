@@ -59,3 +59,89 @@ test('back_intent: dispatching popstate while flowComplete is false produces a #
   expect(typeof payload.pathname).toBe('string');
   expect(typeof payload.timestamp).toBe('number');
 });
+
+// Plan 04-05: response-rendering + postMessage-capture E2E coverage
+// (RESP-01/02/03). Requires a fresh `npm run build` so dist/sdk.js includes
+// src/response.js + src/log.js via src/index.js's updated import graph
+// (D-08 sessionId wiring, Plan 04-05 Task 1) — this suite is the real-
+// browser proof that the two new modules actually bundle and drive real DOM
+// behavior a happy-dom unit test cannot (tests/response.test.js already
+// covers the pure logic in isolation).
+//
+// config/demo-platform.json sets activeScreens: [] (permissive — the
+// standalone harness is a single static page with no real routing,
+// 04-RESEARCH.md Pitfall 3) and inference.confidenceThreshold: 0.4 (below
+// every canonical cold-start signal's real softmax margin, ~0.44-0.50 per
+// admin/print-softmax-margins.mjs) so the bundled cold-start weights
+// reliably cross the confidence gate and fire a response in this harness —
+// the default 0.65 production threshold is deliberately NOT met by the
+// intentionally non-saturated cold-start margins (03-VALIDATION Success
+// Criterion 2), so a demo-specific override is required to demonstrate
+// RESP-01/02/03 end-to-end here.
+test.describe('response overlay rendering + postMessage capture', () => {
+  test('touch_hesitation: renders a tooltip bubble above the host UI without blocking host interaction', async ({
+    page,
+  }) => {
+    await page.click('button[data-signal="touch_hesitation"]');
+
+    // (a) overlay container exists and never blocks taps outside a rendered response.
+    const overlay = page.locator('[data-heed-overlay]');
+    await expect(overlay).toHaveCount(1);
+    await expect(overlay).toHaveCSS('pointer-events', 'none');
+
+    // (b) the rendered bubble is tappable and carries the UI-SPEC copy for its intent
+    // (touch_hesitation -> confusion -> tooltip, admin/generate-weights.mjs canonical mapping).
+    const bubble = page.locator('[data-heed-response]');
+    await expect(bubble).toHaveAttribute('data-response-type', 'tooltip');
+    await expect(bubble).toHaveCSS('pointer-events', 'auto');
+    await expect(bubble).toContainText('Not sure what this means? Tap for a quick explanation.');
+
+    // (c) the host page underneath remains interactive — the pointer-events: none
+    // container lets a real tap on proceed-cta through to the host element.
+    await page.locator('[data-heed="proceed-cta"]').click({ timeout: 3000 });
+  });
+
+  test('discount_offer: scroll_reversal fires an explicit-origin postMessage carrying the locked payload shape', async ({
+    page,
+  }) => {
+    // Intercept window.postMessage calls at the source rather than relying on actual
+    // cross-window delivery: this file:// harness's page origin is opaque ("null" per
+    // the HTML spec), so the browser's same-origin delivery check can never match an
+    // EXPLICIT non-wildcard targetOrigin (RESP-03/T-04-01 forbids '*') back to a
+    // same-page 'message' listener — a same-origin-policy fact, not something this
+    // suite is testing. This proves response.js CALLS postMessage with the correct
+    // payload/origin, which is what RESP-03 actually requires of the SDK.
+    await page.evaluate(() => {
+      window.__heedPostMessages = [];
+      const original = window.postMessage.bind(window);
+      window.postMessage = function (data, targetOrigin, transfer) {
+        window.__heedPostMessages.push({ data, targetOrigin });
+        return original(data, targetOrigin, transfer);
+      };
+    });
+
+    // scroll_reversal -> price_doubt -> discount_offer (admin/generate-weights.mjs canonical mapping).
+    await page.click('button[data-signal="scroll_reversal"]');
+
+    const bubble = page.locator('[data-heed-response]');
+    await expect(bubble).toHaveAttribute('data-response-type', 'discount_offer');
+    await expect(bubble).toContainText('Complete now and save on fees.');
+    await expect(bubble.locator('button', { hasText: 'See offer' })).toBeVisible();
+
+    const captured = await page.evaluate(() => window.__heedPostMessages);
+    expect(captured.length).toBeGreaterThanOrEqual(1);
+    const msg = captured[captured.length - 1];
+
+    // T-04-01: explicit, non-wildcard target origin — never '*'.
+    expect(msg.targetOrigin).not.toBe('*');
+    expect(msg.targetOrigin).toBe('http://localhost:3000');
+
+    // 04-UI-SPEC.md locked discount_offer postMessage payload shape.
+    expect(msg.data.type).toBe('heed:discount_offer');
+    expect(typeof msg.data.sessionId).toBe('string');
+    expect(msg.data.sessionId.length).toBeGreaterThan(0);
+    expect(msg.data.partnerId).toBe('demo-platform');
+    expect(msg.data.intent).toBe('price_doubt');
+    expect(typeof msg.data.timestamp).toBe('number');
+  });
+});

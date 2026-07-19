@@ -172,6 +172,25 @@
     appendLog(detail);
   });
 
+  // Plan 04-05 / 04-VALIDATION.md Manual-Only Verification: parent-context
+  // listener surfacing response.js's discount_offer postMessage for manual
+  // eyeballing (RESP-03). Trigger price_doubt (the "Simulate scroll_reversal"
+  // button below) and watch this panel for a "heed:discount_offer" line.
+  // KNOWN LIMITATION when this file is opened directly via file://: the page
+  // gets an opaque ("null") origin, and window.parent.postMessage(payload,
+  // config.partnerOrigin) requires an EXPLICIT non-wildcard target origin
+  // (RESP-03/T-04-01) — the browser's same-origin delivery check will never
+  // match an opaque origin against an explicit "http://..." string, so this
+  // listener will not actually receive the message under file://. This is a
+  // browser same-origin-policy fact, not an SDK bug — re-verify against a
+  // real partner page served over http(s) (Phase 6, live Branch 1) where the
+  // page's real origin matches config.partnerOrigin.
+  window.addEventListener('message', function (event) {
+    if (event.data && event.data.type === 'heed:discount_offer') {
+      appendLog({ receivedPostMessage: event.data, fromOrigin: event.origin });
+    }
+  });
+
   // D-08: each simulate* function dispatches a REAL DOM event onto the
   // mapped data-heed element/window, driving signal.js's actual listeners
   // (touchstart/touchend hold timer, focus/blur diff, scroll hysteresis,

@@ -1,8 +1,11 @@
 {
   "platformId": "demo-platform",
   "completionSelector": "[data-heed=\"flow-complete\"]",
-  "activeScreens": ["/swap", "/confirm", "/success"],
+  "activeScreens": [],
   "partnerOrigin": "http://localhost:3000",
+  "inference": {
+    "confidenceThreshold": 0.4
+  },
   "selectors": {
     "amountInput": "[data-heed=\"amount-input\"]",
     "feeRow": "[data-heed=\"fee-row\"]",
