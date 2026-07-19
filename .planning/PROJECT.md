@@ -31,21 +31,21 @@ exists to prove it's built right.
 - [x] All signal payloads are geometry/timing only — `{ type, targetSelector, bbox, timestamp }`, no field values, no identity — Validated in Phase 2: Signal Capture Layer
 - [x] Internal event bus carries signals from signal.js to inference.js with no signal leaving the browser except the session-end weight push — Validated in Phase 1: Config Layer, Bus & Standalone Test Harness (BUS-01); Phase 2 confirmed signal.js publishes through this same bus end-to-end
 - [x] SPA re-attachment: MutationObserver on `document.body` + popstate listener, both gated on pathname change, idempotent re-attachment via WeakSet tracking — no double-firing — Validated in Phase 2: Signal Capture Layer
+- [x] 2-layer feedforward net: 4-node input → 4-node hidden (ReLU) → 4-node softmax output over {confusion, price_doubt, trust_gap, flow_friction} — Validated in Phase 3: Inference Layer
+- [x] Forward pass implemented explicitly (W1/b1 → ReLU → W2/b2 → softmax) — not abstracted behind a black-box call without understanding each step — Validated in Phase 3: Inference Layer
+- [x] Confidence threshold gate (default 0.65) — no response fires below threshold — Validated in Phase 3: Inference Layer
+- [x] Weight update fires once at session end (not per-event), outcome label from `flowComplete`, learning rate 0.01 — Validated in Phase 3: Inference Layer
+- [x] Cold-start weights encode the domain-knowledge mapping (touch_hesitation→confusion, blur_incomplete→flow_friction, scroll_reversal→price_doubt, back_intent→trust_gap) and are used when no learned weights exist yet — Validated in Phase 3: Inference Layer
+- [x] Response overlay: single fixed full-viewport div injected at init, `pointer-events: none` on the container, `pointer-events: auto` on rendered response elements, host DOM untouched — Validated in Phase 4: Response Overlay & Logging
+- [x] `clampToViewport()` keeps responses within iOS safe-area insets on a 390px viewport — Validated in Phase 4: Response Overlay & Logging
+- [x] All 4 response types implemented: tooltip, nudge_copy, discount_offer (fires `postMessage` to host, does not fulfill the offer itself), social_proof — Validated in Phase 4: Response Overlay & Logging
+- [x] Config layer: `config/schema.json` (documented schema) + `config/demo-platform.json` (targets the 7 locked `data-heed` selectors from CONTRACT.md) — Validated in Phase 1: Config Layer, Bus & Standalone Test Harness (extended in Phase 4 with `activeScreens`/`partnerOrigin`)
+- [x] Config validation hard-fails on invalid schema — Validated in Phase 1: Config Layer, Bus & Standalone Test Harness (array-type validation gap fixed in Phase 4)
+- [x] Logging layer: every entry `{ ts, sessionId, partnerId, event, data }`, event types `signal_detected | inference_run | response_fired | response_dismissed | flow_complete | flow_abandoned`, emitted via `console.log('[heed]', JSON.stringify(entry))` — Validated in Phase 4: Response Overlay & Logging
+- [x] Standalone local test harness (static HTML, not the real Next.js app) exposing all 7 `data-heed` selectors so every signal type can be manually triggered without a running Branch 1 — Validated in Phase 1: Config Layer, Bus & Standalone Test Harness
 
 ### Active
 
-- [ ] 2-layer feedforward net: 4-node input → 4-node hidden (ReLU) → 4-node softmax output over {confusion, price_doubt, trust_gap, flow_friction}
-- [ ] Forward pass implemented explicitly (W1/b1 → ReLU → W2/b2 → softmax) — not abstracted behind a black-box call without understanding each step
-- [ ] Confidence threshold gate (default 0.65) — no response fires below threshold
-- [ ] Weight update fires once at session end (not per-event), outcome label from `flowComplete`, learning rate 0.01
-- [ ] Cold-start weights encode the domain-knowledge mapping (touch_hesitation→confusion, blur_incomplete→flow_friction, scroll_reversal→price_doubt, back_intent→trust_gap) and are used when no learned weights exist yet
-- [ ] Response overlay: single fixed full-viewport div injected at init, `pointer-events: none` on the container, `pointer-events: auto` on rendered response elements, host DOM untouched
-- [ ] `clampToViewport()` keeps responses within iOS safe-area insets on a 390px viewport
-- [ ] All 4 response types implemented: tooltip, nudge_copy, discount_offer (fires `postMessage` to host, does not fulfill the offer itself), social_proof
-- [ ] Config layer: `config/schema.json` (documented schema) + `config/demo-platform.json` (targets the 7 locked `data-heed` selectors from CONTRACT.md)
-- [ ] Config validation hard-fails on invalid schema
-- [ ] Logging layer: every entry `{ ts, sessionId, partnerId, event, data }`, event types `signal_detected | inference_run | response_fired | response_dismissed | flow_complete | flow_abandoned`, emitted via `console.log('[heed]', JSON.stringify(entry))`
-- [ ] Standalone local test harness (static HTML, not the real Next.js app) exposing all 7 `data-heed` selectors so every signal type can be manually triggered without a running Branch 1
 - [ ] Real local weight-push receiver: minimal local server accepts the session-end POST, persists the updated weight array to a local JSON file, and `sdk.js` cold-start reads that file if present (falling back to the structured-guess weights otherwise) — closes the learning loop across sessions
 - [ ] Manual testing sequence from the spec passes against a live Branch 1 once available: press-and-hold triggers hesitation, blur-without-typing triggers blur_incomplete, scroll down/up triggers scroll_reversal, back button before success triggers back_intent, log sequence is `signal_detected → inference_run → response_fired`, overlay renders above platform UI without blocking interaction, no logs fire on Screen 1 (not in `activeScreens`)
 
@@ -89,4 +89,4 @@ exists to prove it's built right.
 | esbuild used as a dev-only build tool to produce the single flat `sdk.js`; partner integration remains zero-build, one `<script>` tag | Reconciles CLAUDE.md's "no bundler" rule (meant for the SDK/partner surface) with the mechanical reality that combining hand-written code + exported weights into one file needs some build step for the Heed team | ✓ Good |
 
 ---
-*Last updated: 2026-07-16 — Phase 2 (Signal Capture Layer) complete: SIG-01 through SIG-06 validated*
+*Last updated: 2026-07-19 — Phase 4 (Response Overlay & Logging) complete: RESP-01/02/03, LOG-01 validated*
