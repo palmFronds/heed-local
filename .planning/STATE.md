@@ -6,14 +6,14 @@ current_phase: 4
 current_phase_name: Response Overlay & Logging
 status: executing
 stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-07-19T16:48:53.035Z"
+last_updated: "2026-07-19T16:59:19.161Z"
 last_activity: 2026-07-18
 last_activity_desc: Phase 4 execution started
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 20
-  completed_plans: 17
+  completed_plans: 18
   percent: 50
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-09)
 ## Current Position
 
 Phase: 4 (Response Overlay & Logging) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 Status: Ready to execute
 Last activity: 2026-07-18 — Phase 4 execution started
 
@@ -70,6 +70,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 3 P5 | 6min | 3 tasks | 4 files |
 | Phase 04-response-overlay-logging P02 | 15min | 3 tasks | 4 files |
 | Phase 04-response-overlay-logging P03 | 12min | 2 tasks | 2 files |
+| Phase 04 P04 | 20min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,9 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 4] RESP-03 discount_offer/social_proof test payloads use bbox:null with their real originating signal type (scroll_reversal/back_intent) per 04-RESEARCH.md Pitfall 2
 - [Phase ?]: [Phase 4] log.js co-locates session-lifecycle wiring (flow:complete/pagehide/sessionEnded/endSession) rather than index.js, since it already subscribes to flow:complete to log it -- avoids a second subscription
 - [Phase ?]: [Phase 4] inference_run log entries carry a curated {intent, confidence, fires} subset of inference:result, not the full payload -- matches 04-UI-SPEC.md's Logging Contract
+- [Phase ?]: [Phase 4] response.js reset-on-reinit silently removes any leftover bubble from a prior initResponse() call (DOM removal + timer clear) without publishing response:dismissed -- treated as fresh-session init, not a user dismissal
+- [Phase ?]: [Phase 4] clampToViewport() render-time bubble dimensions are fixed estimates (358px cap, 80/112px height), not measured via getBoundingClientRect(), since happy-dom returns zeroed rects (04-RESEARCH.md Pitfall 5)
+- [Phase ?]: [Phase 4] response.js's entrance animation is driven by a Promise microtask, not setTimeout, so it never interacts with vi.useFakeTimers() in the auto-dismiss-timer tests
 
 ### Pending Todos
 
@@ -132,6 +136,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-19T16:47:55.684Z
+Last session: 2026-07-19T16:58:27.183Z
 Stopped at: Completed 04-02-PLAN.md
 Resume file: None

@@ -35,9 +35,9 @@ Requirements for initial release. Each maps to a roadmap phase. Per PROJECT.md, 
 
 ### Response
 
-- [ ] **RESP-01**: Single fixed full-viewport div injected at init, `pointer-events: none` on the container, `pointer-events: auto` on rendered response elements, host DOM untouched
-- [ ] **RESP-02**: `clampToViewport()` keeps responses within iOS safe-area insets on a 390px viewport
-- [ ] **RESP-03**: All 4 response types implemented: tooltip, nudge_copy, discount_offer (fires `postMessage` to host, does not fulfill the offer itself), social_proof
+- [x] **RESP-01**: Single fixed full-viewport div injected at init, `pointer-events: none` on the container, `pointer-events: auto` on rendered response elements, host DOM untouched
+- [x] **RESP-02**: `clampToViewport()` keeps responses within iOS safe-area insets on a 390px viewport
+- [x] **RESP-03**: All 4 response types implemented: tooltip, nudge_copy, discount_offer (fires `postMessage` to host, does not fulfill the offer itself), social_proof
 
 ### Logging
 
@@ -97,9 +97,9 @@ Explicitly excluded. Documented to prevent scope creep.
 | INF-03 | Phase 3 | Complete |
 | INF-04 | Phase 3 | Complete |
 | INF-05 | Phase 3 | Complete |
-| RESP-01 | Phase 4 | Pending |
-| RESP-02 | Phase 4 | Pending |
-| RESP-03 | Phase 4 | Pending |
+| RESP-01 | Phase 4 | Complete |
+| RESP-02 | Phase 4 | Complete |
+| RESP-03 | Phase 4 | Complete |
 | LOG-01 | Phase 4 | Complete |
 | WEIGHT-01 | Phase 5 | Pending |
 | INTEG-01 | Phase 6 | Pending |
