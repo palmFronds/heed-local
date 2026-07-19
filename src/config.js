@@ -1,5 +1,5 @@
 // src/config.js — generic interpreter over a restricted JSON-Schema-draft-07 subset.
-// Implements only: type, required, properties, enum, additionalProperties.
+// Implements only: type, required, properties, enum.
 // Never soft-fail-and-return; always throws on any violation (CFG-02 hard-fail).
 // Selector strings never live here — only in config/demo-platform.json.
 
