@@ -41,6 +41,24 @@ function inferenceResult(overrides = {}) {
   };
 }
 
+// WR-03: isolate each test's DOM state so leftover host-DOM elements (e.g.
+// RESP-01's #host-sentinel) from an earlier test are never mistaken for
+// current-test output. Note: `document.body.innerHTML = ''` is NOT used here
+// — src/response.js's overlay container is injected exactly once (guarded by
+// the module-level `initialized` singleton) and never re-appended on
+// subsequent initResponse() calls, so wiping the whole body would detach that
+// singleton container from the document while response.js still holds and
+// renders into the stale reference, breaking every later query-based
+// assertion in this file. Instead, remove only body children that are NOT
+// the `[data-heed-overlay]` singleton, which leaves the container (and the
+// bubbles response.js renders inside it) intact while still discarding any
+// stray host-DOM elements a test appended directly to body.
+afterEach(() => {
+  Array.from(document.body.children).forEach((el) => {
+    if (!el.hasAttribute('data-heed-overlay')) el.remove();
+  });
+});
+
 describe('RESP-01', () => {
   it('injects a single pointer-events:none fixed overlay container into document.body, renders the response element with pointer-events:auto, and leaves host DOM outside the overlay untouched', () => {
     const sentinel = document.createElement('div');
