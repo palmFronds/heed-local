@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 4
 current_phase_name: Response Overlay & Logging
 status: executing
-stopped_at: Phase 4 context gathered
-last_updated: "2026-07-18T22:05:57.476Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-07-19T03:21:05.170Z"
 last_activity: 2026-07-18
 last_activity_desc: Phase 4 execution started
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 20
-  completed_plans: 15
+  completed_plans: 16
   percent: 50
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-09)
 ## Current Position
 
 Phase: 4 (Response Overlay & Logging) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-07-18 — Phase 4 execution started
 
@@ -68,6 +68,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 03 P03 | 6min | 2 tasks | 1 files |
 | Phase 03 P04 | 2min | 2 tasks | 1 files |
 | Phase 3 P5 | 6min | 3 tasks | 4 files |
+| Phase 04-response-overlay-logging P02 | 15min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,9 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 03] endSession's learning rate is hard-coded to the literal 0.01 (INF-04's explicit requirement); the config parameter is reserved for a future config-driven override and intentionally unused this phase
 - [Phase ?]: [Phase 03] endSession does not reset lastInference after running -- a second call against the now-updated activeWeights produces a second, independent, non-zero delta, matching 03-RESEARCH.md's empirically-verified train() single-step semantics
 - [Phase ?]: [Phase 03] admin/weights.js regenerated once more during 03-05's checkpoint verification (brain.js training uses random init, non-reproducible byte-for-byte); re-verified correctness via the numeric margin gate before committing
+- [Phase ?]: [Phase 4] Overlay/response DOM markers are [data-heed-overlay]/[data-heed-response] -- internal only, distinct from the 7 CONTRACT.md-locked data-heed selectors
+- [Phase ?]: [Phase 4] log.test.js verifies the D-03 sessionEnded guard by mocking src/inference.js's endSession export via vi.hoisted+vi.mock rather than asserting on internal weight state
+- [Phase ?]: [Phase 4] RESP-03 discount_offer/social_proof test payloads use bbox:null with their real originating signal type (scroll_reversal/back_intent) per 04-RESEARCH.md Pitfall 2
 
 ### Pending Todos
 
@@ -125,6 +129,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-18T22:05:57.462Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-response-overlay-logging/04-CONTEXT.md
+Last session: 2026-07-19T03:21:05.149Z
+Stopped at: Completed 04-02-PLAN.md
+Resume file: None
