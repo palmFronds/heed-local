@@ -136,7 +136,7 @@ Plans:
   3. Each of the 4 response types (tooltip, nudge_copy, discount_offer, social_proof) renders correctly for its mapped intent class; `discount_offer` fires a `postMessage` to the host with an explicit target origin and does not itself grant or fulfill the discount.
   4. Every pipeline event type (`signal_detected`, `inference_run`, `response_fired`, `response_dismissed`, `flow_complete`, `flow_abandoned`) produces exactly one structured `console.log('[heed]', JSON.stringify(entry))` line with `{ ts, sessionId, partnerId, event, data }`, emitted only from the logging layer.
 
-**Plans**: 4/6 plans executed
+**Plans**: 5/6 plans executed
 
 Plans:
 **Wave 0**
@@ -154,7 +154,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 04-05-PLAN.md — index.js wiring (sessionId D-08, initLogging/initResponse) + E2E harness additions + bundle rebuild (RESP-01/02/03, LOG-01)
+- [x] 04-05-PLAN.md — index.js wiring (sessionId D-08, initLogging/initResponse) + E2E harness additions + bundle rebuild (RESP-01/02/03, LOG-01)
 
 **Wave 4** *(blocked on Wave 3)*
 
@@ -203,6 +203,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Config Layer, Bus & Standalone Test Harness | 5/5 | Complete   | 2026-07-12 |
 | 2. Signal Capture Layer | 4/4 | Complete    | 2026-07-15 |
 | 3. Inference Layer | 5/5 | Complete    | 2026-07-17 |
-| 4. Response Overlay & Logging | 4/6 | In Progress|  |
+| 4. Response Overlay & Logging | 5/6 | In Progress|  |
 | 5. Weight-Push Learning Loop | 0/TBD | Not started | - |
 | 6. Integration Verification Against Live Branch 1 | 0/TBD | Not started | - |
