@@ -71,6 +71,18 @@ describe('CR-01', () => {
   });
 });
 
+describe('WR-01', () => {
+  it('hard-fails (throws) when an array value is validated against a { type: "object" } schema node with no `required` array', () => {
+    const objSchema = {
+      type: 'object',
+      properties: {
+        inference: { type: 'object', properties: { confidenceThreshold: { type: 'number' } } },
+      },
+    };
+    expect(() => validateConfig({ inference: [] }, objSchema)).toThrow(/expected type "object"/);
+  });
+});
+
 describe('CFG-02', () => {
   it('hard-fails (throws) when required top-level fields are missing', () => {
     expect(() => validateConfig({ platformId: 'x' }, schema)).toThrow();
