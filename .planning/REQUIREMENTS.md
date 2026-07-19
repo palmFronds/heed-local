@@ -41,7 +41,7 @@ Requirements for initial release. Each maps to a roadmap phase. Per PROJECT.md, 
 
 ### Logging
 
-- [ ] **LOG-01**: Every entry `{ ts, sessionId, partnerId, event, data }`, event types `signal_detected | inference_run | response_fired | response_dismissed | flow_complete | flow_abandoned`, emitted via `console.log('[heed]', JSON.stringify(entry))`
+- [x] **LOG-01**: Every entry `{ ts, sessionId, partnerId, event, data }`, event types `signal_detected | inference_run | response_fired | response_dismissed | flow_complete | flow_abandoned`, emitted via `console.log('[heed]', JSON.stringify(entry))`
 
 ### Test Harness & Weight Loop
 
@@ -100,7 +100,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | RESP-01 | Phase 4 | Pending |
 | RESP-02 | Phase 4 | Pending |
 | RESP-03 | Phase 4 | Pending |
-| LOG-01 | Phase 4 | Pending |
+| LOG-01 | Phase 4 | Complete |
 | WEIGHT-01 | Phase 5 | Pending |
 | INTEG-01 | Phase 6 | Pending |
 

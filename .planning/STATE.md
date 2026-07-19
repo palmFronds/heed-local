@@ -6,14 +6,14 @@ current_phase: 4
 current_phase_name: Response Overlay & Logging
 status: executing
 stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-07-19T03:21:05.170Z"
+last_updated: "2026-07-19T16:48:53.035Z"
 last_activity: 2026-07-18
 last_activity_desc: Phase 4 execution started
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 20
-  completed_plans: 16
+  completed_plans: 17
   percent: 50
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-09)
 ## Current Position
 
 Phase: 4 (Response Overlay & Logging) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-07-18 — Phase 4 execution started
 
@@ -69,6 +69,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 03 P04 | 2min | 2 tasks | 1 files |
 | Phase 3 P5 | 6min | 3 tasks | 4 files |
 | Phase 04-response-overlay-logging P02 | 15min | 3 tasks | 4 files |
+| Phase 04-response-overlay-logging P03 | 12min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,8 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 4] Overlay/response DOM markers are [data-heed-overlay]/[data-heed-response] -- internal only, distinct from the 7 CONTRACT.md-locked data-heed selectors
 - [Phase ?]: [Phase 4] log.test.js verifies the D-03 sessionEnded guard by mocking src/inference.js's endSession export via vi.hoisted+vi.mock rather than asserting on internal weight state
 - [Phase ?]: [Phase 4] RESP-03 discount_offer/social_proof test payloads use bbox:null with their real originating signal type (scroll_reversal/back_intent) per 04-RESEARCH.md Pitfall 2
+- [Phase ?]: [Phase 4] log.js co-locates session-lifecycle wiring (flow:complete/pagehide/sessionEnded/endSession) rather than index.js, since it already subscribes to flow:complete to log it -- avoids a second subscription
+- [Phase ?]: [Phase 4] inference_run log entries carry a curated {intent, confidence, fires} subset of inference:result, not the full payload -- matches 04-UI-SPEC.md's Logging Contract
 
 ### Pending Todos
 
@@ -129,6 +132,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-19T03:21:05.149Z
+Last session: 2026-07-19T16:47:55.684Z
 Stopped at: Completed 04-02-PLAN.md
 Resume file: None
