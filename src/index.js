@@ -5,6 +5,8 @@ import { validateConfig } from './config.js';
 import { publish, subscribe } from './bus.js';
 import { initSignalCapture } from './signal.js';
 import { initInference } from './inference.js';
+import { initLogging } from './log.js';
+import { initResponse } from './response.js';
 import schema from '../config/schema.json';
 import demoConfig from '../config/demo-platform.json';
 
@@ -19,6 +21,13 @@ export { publish, subscribe };
  */
 export function init(rawConfig) {
   const config = validateConfig(rawConfig, schema);
+  // D-08: sessionId is generated exactly once per page load, here — the
+  // single choke point index.js owns — and threaded into both log.js and
+  // response.js below. Native crypto.randomUUID(), no fallback (verified
+  // available even over file:// in this project's Playwright/Chromium test
+  // environment, 04-RESEARCH.md Code Examples). Never returned from init();
+  // it stays internal module state passed to the two initializers only.
+  const sessionId = crypto.randomUUID();
   // Signal listeners attach only AFTER hard-fail validation passes — never
   // instrument the DOM against an unvalidated config, mirroring the note
   // above that an invalid config must stop initialization entirely (CFG-02).
@@ -27,9 +36,15 @@ export function init(rawConfig) {
   // same reasoning as initSignalCapture above: never subscribe the forward
   // pass to signal:detected against a partially-valid config.
   initInference(config);
+  // log.js owns session-lifecycle wiring (flow:complete / pagehide /
+  // sessionEnded guard / endSession) — initialized before response.js so its
+  // subscriptions are registered before the first inference:result could
+  // ever arrive (04-RESEARCH.md Assumption A1).
+  initLogging(config, sessionId);
+  initResponse(config, sessionId);
   // Return shape stays exactly { config, publish, subscribe } — signal
-  // capture and inference wiring are side-effecting, not returned values
-  // (no new key added here).
+  // capture, inference, logging, and response wiring are all side-effecting,
+  // not returned values (no new key added here).
   return { config, publish, subscribe };
 }
 
