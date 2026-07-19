@@ -53,6 +53,24 @@ describe('array type validation', () => {
   });
 });
 
+describe('CR-01', () => {
+  const schema2 = {
+    type: 'object',
+    required: ['selectors'],
+    properties: {
+      selectors: {
+        type: 'object',
+        required: ['a'],
+        properties: { a: { type: 'string' } },
+      },
+    },
+  };
+
+  it('hard-fails (throws the structured config error, not a raw TypeError) when an object-typed field is null', () => {
+    expect(() => validateConfig({ selectors: null }, schema2)).toThrow(/expected type "object"/);
+  });
+});
+
 describe('CFG-02', () => {
   it('hard-fails (throws) when required top-level fields are missing', () => {
     expect(() => validateConfig({ platformId: 'x' }, schema)).toThrow();

@@ -13,14 +13,20 @@ export function validateConfig(config, schema) {
 }
 
 function walk(value, schemaNode, path, errors) {
-  if (
-    schemaNode.type &&
-    typeof value !== schemaNode.type &&
-    !(schemaNode.type === 'object' && value !== null && typeof value === 'object') &&
-    !(schemaNode.type === 'array' && Array.isArray(value))
-  ) {
-    errors.push(`${path}: expected type "${schemaNode.type}", got "${typeof value}"`);
-    return; // don't recurse into a value whose base type is already wrong
+  if (schemaNode.type) {
+    const expected = schemaNode.type;
+    const matches =
+      expected === 'object'
+        ? value !== null && typeof value === 'object' && !Array.isArray(value)
+        : expected === 'array'
+          ? Array.isArray(value)
+          : typeof value === expected;
+
+    if (!matches) {
+      const got = value === null ? 'null' : Array.isArray(value) ? 'array' : typeof value;
+      errors.push(`${path}: expected type "${expected}", got "${got}"`);
+      return; // don't recurse into a value whose base type is already wrong
+    }
   }
 
   if (schemaNode.type === 'object' && schemaNode.properties) {
