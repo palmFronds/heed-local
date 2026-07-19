@@ -158,12 +158,13 @@ Every one of the 6 pipeline events produces exactly one line: `console.log('[hee
 | `signal_detected` | A signal payload arrives on the bus (already implemented upstream in Phase 2/3 — this phase only adds the remaining 5 event types around it) | `{ type, targetSelector, bbox, timestamp }` (existing shape, unchanged) |
 | `inference_run` | `inference:result` is published, regardless of `fires` | `{ intent, confidence, fires }` at minimum |
 | `response_fired` | A response bubble is actually rendered (i.e. `fires === true` AND `activeScreens` gate passes) | `{ intent, responseType, targetSelector }` |
-| `response_dismissed` | The bubble is removed — either by manual `×` tap, CTA tap, or the 6000ms auto-timeout | `{ responseType, dismissReason: "manual" \| "cta" \| "timeout" }` |
+| `response_dismissed` | The bubble is removed — either by manual `×` tap, CTA tap, the 6000ms auto-timeout, or being replaced by a new above-threshold response | `{ responseType, dismissReason: "manual" \| "cta" \| "timeout" \| "replaced" }` |
 | `flow_complete` | `completionSelector` becomes visible (mirrors existing `flowComplete` detection in `signal.js`) | `{}` or omitted extra fields — event name alone carries the meaning |
 | `flow_abandoned` | Session ends (e.g. `back_intent` fires with no subsequent completion, or tab/session teardown) without `flow_complete` having fired | `{}` |
 
 - All 6 event types are emitted **only from the logging layer** (`log.js` per `repo2_heed_sdk.txt`'s file structure) — no other module calls `console.log('[heed]', ...)` directly. `(locked)`.
 - No log line fires while the current pathname is outside `config.activeScreens` (mirrors Phase 6's INTEG-01 acceptance check "no logs fire on Screen 1").
+- `dismissReason`'s 4th value, `"replaced"`, was added per `04-CONTEXT.md` D-05 (single-bubble concurrency): a new above-threshold `inference:result` arriving while a bubble is showing dismisses the existing bubble with this reason before rendering the new one.
 
 ---
 
