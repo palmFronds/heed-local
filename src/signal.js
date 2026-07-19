@@ -243,6 +243,12 @@ function checkFlowComplete(config) {
   const el = document.querySelector(selector);
   if (el && getComputedStyle(el).display !== 'none') {
     flowCompleteFlag = true;
+    // D-01: publish exactly once, at the false->true transition — the
+    // top-of-function `if (flowCompleteFlag) return;` guard above already
+    // guarantees this branch runs at most once per session, so this publish
+    // fires exactly once (log.js's finishSession is the sole subscriber
+    // driving the flow_complete log line + endSession(true)).
+    publish('flow:complete', {});
   }
 }
 
