@@ -6,14 +6,14 @@ current_phase: 6
 current_phase_name: Integration Verification Against Live Branch 1
 status: executing
 stopped_at: Phase 6 context gathered
-last_updated: "2026-07-20T20:54:52.129Z"
+last_updated: "2026-07-20T23:48:26.276Z"
 last_activity: 2026-07-20
 last_activity_desc: Phase 05 complete, transitioned to Phase 6
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 25
-  completed_plans: 25
+  total_plans: 27
+  completed_plans: 26
   percent: 83
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-09)
 ## Current Position
 
 Phase: 6 — Integration Verification Against Live Branch 1
-Plan: Not started
+Plan: 1 of 2
 Status: Ready to execute
 Last activity: 2026-07-20 — Phase 05 complete, transitioned to Phase 6
 
@@ -75,6 +75,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 04 P04 | 20min | 2 tasks | 2 files |
 | Phase 04-response-overlay-logging P05 | 12min | 2 tasks | 4 files |
 | Phase 04 P06 | 5min | 1 tasks | 0 files |
+| Phase 06-integration-verification-against-live-branch-1 P01 | 20min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -123,6 +124,8 @@ Recent decisions affecting current work:
 - [Phase ?]: demo-platform.json inference.confidenceThreshold set to 0.4 -- cold-start weights are intentionally non-saturated (~0.44-0.50 margin) and never cross the 0.65 production default
 - [Phase ?]: discount_offer postMessage E2E coverage captured via in-page window.postMessage override, not real cross-window delivery -- file:// opaque origin can never satisfy a non-wildcard targetOrigin delivery check
 - [Phase ?]: [Phase 4] Plan 04-06 human-verify checkpoint approved via operator-reviewed automated stand-in pass (build + Vitest 75/75 + Playwright 6/6 + real-Chromium 390px screenshots + log inspection) -- no issues found, Phase 4 gate closed
+- [Phase ?]: Live config inference.confidenceThreshold set to 0.4 (matches demo-platform.json precedent) so cold-start weight margins reliably cross the response gate for Plan 06-02 verification
+- [Phase ?]: window.Heed.init(liveConfig) used in the worktree boot script instead of initDemo() -- initDemo() is hard-wired to the bundled config and cannot load activeScreens gating
 
 ### Pending Todos
 
@@ -146,6 +149,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-20T20:20:19.624Z
+Last session: 2026-07-20T23:47:40.050Z
 Stopped at: Phase 6 context gathered
 Resume file: .planning/phases/06-integration-verification-against-live-branch-1/06-CONTEXT.md
