@@ -17,6 +17,14 @@ const HARNESS_URL = 'file://' + path.resolve('test-harness/index.html');
 
 test.beforeEach(async ({ page }) => {
   await page.goto(HARNESS_URL);
+  // Plan 05-04: the bootstrap's window.Heed.initDemo(overrides) call now runs
+  // asynchronously (after a cold-start weight fetch settles, D-01/D-06),
+  // rather than synchronously during page parse. Wait for the harness's
+  // window.__heedReady test hook before dispatching any signal-simulating
+  // event, so signal.js's listeners are guaranteed attached first — without
+  // this, a click fired immediately after goto() can race the async init and
+  // silently drop the first touchstart/focus/scroll/popstate dispatch.
+  await page.waitForFunction(() => window.__heedReady === true);
 });
 
 test('touch_hesitation: holding proceed-cta past the 800ms threshold produces a #log receipt', async ({ page }) => {

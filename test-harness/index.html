@@ -176,6 +176,15 @@
       })
       .finally(function () {
         window.Heed.initDemo(overrides);
+        // Test-only readiness hook: initDemo() is now reached asynchronously
+        // (after the fetch settles), unlike the old synchronous bare
+        // initDemo() call, so tests/e2e/harness.spec.js's beforeEach waits on
+        // this flag before dispatching any signal-simulating DOM event —
+        // otherwise a click fired immediately after page.goto() could
+        // dispatch touchstart/focus/scroll/popstate before signal.js's
+        // listeners are attached, silently dropping the very first event.
+        // Never read by dist/sdk.js or any partner-facing code.
+        window.__heedReady = true;
       });
   })();
 
