@@ -71,6 +71,10 @@ export function writeLog(config, sessionId, event, data) {
  * lifecycle path (flow:complete OR pagehide). The sessionEnded guard makes
  * this a no-op on whichever path arrives second, preventing endSession's
  * documented non-idempotent double-count (src/inference.js lines 281-304).
+ * Captures endSession's return (05-03: now the updated {W1,b1,W2,b2}) and,
+ * if there's something to push and a receiver URL is configured, forwards it
+ * to pushWeights() — guarded so an absent URL or a no-signal-fired session
+ * (endSession returns undefined) never attempts a push (D-06/A3).
  * @param {boolean} outcome - true if flowComplete, false if abandoned
  * @param {string} event - 'flow_complete' | 'flow_abandoned'
  */
@@ -78,7 +82,37 @@ function finishSession(outcome, event) {
   if (sessionEnded) return; // D-03: whichever path arrives first wins, the other is a no-op
   sessionEnded = true;
   writeLog(activeConfig, activeSessionId, event, {});
-  endSession(activeConfig, outcome);
+  const updatedWeights = endSession(activeConfig, outcome);
+  if (updatedWeights && activeConfig.weightPushUrl) {
+    pushWeights(activeConfig.weightPushUrl, updatedWeights, event === 'flow_abandoned');
+  }
+}
+
+/**
+ * D-03: the sole choke point that transmits learned weights off the browser
+ * (CLAUDE.md's "one outbound call" — the session-end weight push) — mirrors
+ * writeLog()'s single-choke-point discipline above. Body is JSON.stringify()
+ * of the numeric {W1,b1,W2,b2} weights object only — never DOM/host/PII data
+ * (No-PII firewall, see file header). Transport is the ONLY branch: pagehide
+ * (flow_abandoned) uses navigator.sendBeacon() since it must fire-and-forget
+ * during page unload; flow:complete uses fetch(), whose rejection is
+ * swallowed so a receiver being down or unreachable never throws into (or
+ * breaks) the host page (best-effort, no-crash discipline).
+ * @param {string} url - activeConfig.weightPushUrl
+ * @param {{W1:number[][], b1:number[], W2:number[][], b2:number[]}} weights
+ * @param {boolean} useBeacon - true on the pagehide/abandon path
+ */
+function pushWeights(url, weights, useBeacon) {
+  const body = JSON.stringify(weights);
+  if (useBeacon) {
+    navigator.sendBeacon(url, body); // string payload -> text/plain -> no CORS preflight (D-03)
+  } else {
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+    }).catch(() => {}); // best-effort — never throw into the host page
+  }
 }
 
 /**
