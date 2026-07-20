@@ -53,8 +53,6 @@ function setCors(res) {
  * @returns {import('node:http').Server}
  */
 export function createReceiver({ weightsPath = DEFAULT_WEIGHTS_PATH } = {}) {
-  const tmpPath = `${weightsPath}.tmp`;
-
   const server = http.createServer((req, res) => {
     setCors(res);
 
@@ -129,7 +127,13 @@ export function createReceiver({ weightsPath = DEFAULT_WEIGHTS_PATH } = {}) {
         }
         // Atomic swap: write to a temp file then rename onto the real path,
         // so a crash/interrupt mid-write never leaves a half-written,
-        // corrupt weights.json behind.
+        // corrupt weights.json behind. Code review WR-02: the temp path is
+        // computed per-request (not once per server instance) so two POSTs
+        // in flight concurrently (e.g. two browser tabs finishing a session
+        // near-simultaneously, or a soak-test run against a live harness
+        // session) each write their own temp file instead of racing to
+        // overwrite a single shared tmpPath mid-flight.
+        const tmpPath = `${weightsPath}.${process.pid}.${Date.now()}.${Math.random().toString(36).slice(2)}.tmp`;
         fs.writeFile(tmpPath, JSON.stringify(body), (writeErr) => {
           if (writeErr) {
             res.writeHead(500);

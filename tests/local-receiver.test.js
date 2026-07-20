@@ -148,6 +148,41 @@ describe('local-receiver', () => {
     expect(resValid.status).toBe(200);
   });
 
+  it('concurrent POSTs use distinct temp files and both persist a fully-formed weights object, never a mixed/corrupt write (code review WR-02)', async () => {
+    const OTHER_WEIGHTS = {
+      W1: VALID_WEIGHTS.W1.map((row) => row.map((x) => x + 1)),
+      b1: VALID_WEIGHTS.b1.map((x) => x + 1),
+      W2: VALID_WEIGHTS.W2.map((row) => row.map((x) => x + 1)),
+      b2: VALID_WEIGHTS.b2.map((x) => x + 1),
+    };
+
+    // Fire both POSTs concurrently -- before the WR-02 fix, both requests
+    // wrote to the SAME shared `${weightsPath}.tmp`, so one writer's bytes
+    // could be clobbered mid-flight by the other's, or the renames could
+    // race and leave a mixed/corrupt file. With a unique temp path per
+    // request, each write-then-rename is independent; the file on disk
+    // must end up as one whole result or the other, never a mix.
+    const [resA, resB] = await Promise.all([
+      fetch(`http://localhost:${port}/weights`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(VALID_WEIGHTS),
+      }),
+      fetch(`http://localhost:${port}/weights`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(OTHER_WEIGHTS),
+      }),
+    ]);
+    expect(resA.status).toBe(200);
+    expect(resB.status).toBe(200);
+
+    const onDisk = JSON.parse(fs.readFileSync(weightsPath, 'utf8'));
+    const isWholeA = JSON.stringify(onDisk) === JSON.stringify(VALID_WEIGHTS);
+    const isWholeB = JSON.stringify(onDisk) === JSON.stringify(OTHER_WEIGHTS);
+    expect(isWholeA || isWholeB).toBe(true);
+  });
+
   it('a corrupt on-disk weights file does not crash the receiver and is never served as-is on GET (SC4)', async () => {
     // Pre-write garbage directly to the temp weights path (simulating an
     // externally-corrupted file), bypassing the receiver's own POST path.
