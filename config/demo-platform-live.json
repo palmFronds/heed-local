@@ -1,0 +1,28 @@
+{
+  "platformId": "demo-platform",
+  "completionSelector": "[data-heed=\"flow-complete\"]",
+  "activeScreens": ["/swap", "/confirm", "/success"],
+  "partnerOrigin": "http://localhost:3000",
+  "weightPushUrl": "http://localhost:4310/weights",
+  "inference": {
+    "confidenceThreshold": 0.4
+  },
+  "selectors": {
+    "amountInput": "[data-heed=\"amount-input\"]",
+    "feeRow": "[data-heed=\"fee-row\"]",
+    "minReceivedRow": "[data-heed=\"min-received-row\"]",
+    "proceedCta": "[data-heed=\"proceed-cta\"]",
+    "confirmCta": "[data-heed=\"confirm-cta\"]",
+    "backBtn": "[data-heed=\"back-btn\"]",
+    "flowComplete": "[data-heed=\"flow-complete\"]"
+  },
+  "signals": {
+    "touchHesitation": {
+      "thresholdMs": 800
+    },
+    "scrollReversal": {
+      "depthThresholdPct": 0.4,
+      "minReversalDeltaPx": 50
+    }
+  }
+}

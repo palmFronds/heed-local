@@ -9,12 +9,21 @@
 // Mirrors admin/weights.js's exact {W1,b1,W2,b2} shape (05-RESEARCH.md Code
 // Examples), which is exactly what src/inference.js's initInference already
 // expects at config.inference.weights (INF-05, unchanged this phase).
+//
+// Phase 6 (D-03) extends this same file/process/port with two more dev-only
+// static GET routes -- GET /sdk.js (serves the built dist/sdk.js bundle) and
+// GET /config/demo-platform-live.json (serves the live-route config) -- so a
+// worktree'd live Branch 1 (feat/demo-platform) can load and boot the SDK
+// against this receiver without a second process/port. Still dev/test-only,
+// still never imported by src/ or bundled into dist/sdk.js.
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const DEFAULT_WEIGHTS_PATH = path.join(path.dirname(fileURLToPath(import.meta.url)), 'weights.json');
+const DIST_SDK_PATH = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist', 'sdk.js');
+const LIVE_CONFIG_PATH = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'config', 'demo-platform-live.json');
 const MAX_BODY_BYTES = 64 * 1024; // generous headroom over a ~1-2KB {W1,b1,W2,b2} payload; matches sendBeacon's own 64KiB ceiling (A4)
 
 /**
@@ -72,6 +81,37 @@ export function createReceiver({ weightsPath = DEFAULT_WEIGHTS_PATH } = {}) {
       // this since application/json is not a CORS-safelisted content type.
       res.writeHead(204);
       res.end();
+      return;
+    }
+
+    // Phase 6 (D-03): fixed-path static routes, both compare req.url with
+    // === against a hardcoded literal and read a hardcoded constant path --
+    // the request URL is never concatenated into a filesystem path -- so no
+    // path-traversal surface is introduced (V12; see 06-RESEARCH.md Security
+    // Domain / Pattern 2).
+    if (req.method === 'GET' && req.url === '/sdk.js') {
+      fs.readFile(DIST_SDK_PATH, (err, buf) => {
+        if (err) {
+          res.writeHead(404);
+          res.end();
+          return;
+        }
+        res.writeHead(200, { 'Content-Type': 'application/javascript' });
+        res.end(buf);
+      });
+      return;
+    }
+
+    if (req.method === 'GET' && req.url === '/config/demo-platform-live.json') {
+      fs.readFile(LIVE_CONFIG_PATH, 'utf8', (err, raw) => {
+        if (err) {
+          res.writeHead(404);
+          res.end();
+          return;
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(raw);
+      });
       return;
     }
 
