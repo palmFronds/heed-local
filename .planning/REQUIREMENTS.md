@@ -46,7 +46,7 @@ Requirements for initial release. Each maps to a roadmap phase. Per PROJECT.md, 
 ### Test Harness & Weight Loop
 
 - [x] **TEST-01**: Standalone local test harness (static HTML, not the real Next.js app) exposing all 7 `data-heed` selectors so every signal type can be manually triggered without a running Branch 1
-- [ ] **WEIGHT-01**: Real local weight-push receiver — minimal local server accepts the session-end POST, persists the updated weight array to a local JSON file, and `sdk.js` cold-start reads that file if present (falling back to structured-guess weights otherwise)
+- [x] **WEIGHT-01**: Real local weight-push receiver — minimal local server accepts the session-end POST, persists the updated weight array to a local JSON file, and `sdk.js` cold-start reads that file if present (falling back to structured-guess weights otherwise)
 
 ### Integration
 
@@ -101,7 +101,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | RESP-02 | Phase 4 | Complete |
 | RESP-03 | Phase 4 | Complete |
 | LOG-01 | Phase 4 | Complete |
-| WEIGHT-01 | Phase 5 | Pending |
+| WEIGHT-01 | Phase 5 | Complete |
 | INTEG-01 | Phase 6 | Pending |
 
 **Coverage:**

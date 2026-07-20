@@ -43,8 +43,10 @@ status: all_fixed
 ### WR-02: Receiver's temp-file write path is not per-request, allowing concurrent POSTs to corrupt the persisted weights
 
 **Files modified:** `local-receiver/server.js`
-**Commit:** `864edee`
-**Applied fix:** Replaced the single shared `tmpPath` computed once per server instance with a unique per-request temp path (`${weightsPath}.${process.pid}.${Date.now()}.${random suffix}.tmp`), so concurrent POSTs each write-then-rename through their own temp file rather than racing on a shared one. Verified via `npm test` — existing `local-receiver.test.js` persistence assertions still pass.
+**Commits:** `864edee` (initial fix), `1018644` (follow-up — see below)
+**Applied fix:** Replaced the single shared `tmpPath` computed once per server instance with a unique per-request temp path (`${weightsPath}.${process.pid}.${Date.now()}.${random suffix}.tmp`), so concurrent POSTs each write-then-rename through their own temp file rather than racing on a shared one.
+
+**Follow-up (found during `/gsd-verify-work`'s independent re-verification, not by this fixer pass):** The unique-temp-path fix alone was incomplete — both concurrent requests' `fs.rename()` calls still target the same shared `weightsPath` destination, and Windows can intermittently fail one of two renames to the same destination in quick succession (reproduced ~15-30% of the time, `AssertionError: expected 500 to be 200`, both in the full suite and in isolation). Commit `1018644` closes this by chaining every write+rename onto a single in-process `writeQueue` promise, making the persist step a true single-writer critical section rather than relying on filesystem-specific rename atomicity. Re-verified: 10/10 isolated `concurrent POSTs` runs and 6/6 full-suite runs (88/88 each) with zero flakiness after the follow-up.
 
 ### WR-03: `endSession`'s training signal reinforces the model's own prior prediction rather than any ground truth
 
