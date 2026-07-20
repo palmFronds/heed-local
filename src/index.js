@@ -50,9 +50,20 @@ export function init(rawConfig) {
 
 /**
  * Convenience entry point for the standalone test harness — inits against the
- * bundled demo-platform config so the harness needs no backend/fetch to run.
+ * bundled demo-platform config. Optionally accepts an `overrides.weights`
+ * object (fetched by the harness's own bootstrap script, D-01) to inject
+ * learned weights into config.inference.weights before init() runs — the SDK
+ * bundle itself still makes no cold-start GET (D-01); the override is
+ * supplied by the caller, not fetched here.
+ * @param {{weights?: object}} [overrides]
  * @returns {{ config: object, publish: Function, subscribe: Function }}
  */
-export function initDemo() {
-  return init(demoConfig);
+export function initDemo(overrides) {
+  // Non-mutating merge: demoConfig (and its .inference) are shallow-copied,
+  // never mutated in place, so a bare initDemo() call afterward is unaffected
+  // by a prior overrides call (05-RESEARCH.md Pitfall 2).
+  const config = overrides?.weights
+    ? { ...demoConfig, inference: { ...demoConfig.inference, weights: overrides.weights } }
+    : demoConfig;
+  return init(config);
 }
