@@ -3,6 +3,7 @@
   "completionSelector": "[data-heed=\"flow-complete\"]",
   "activeScreens": [],
   "partnerOrigin": "http://localhost:3000",
+  "weightPushUrl": "http://localhost:4310/weights",
   "inference": {
     "confidenceThreshold": 0.4
   },
