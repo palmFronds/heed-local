@@ -29,7 +29,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Signal Capture Layer** - All 4 signal types captured cleanly, SPA-safe, and emitted as PII-free payloads onto the bus (completed 2026-07-15)
 - [x] **Phase 3: Inference Layer** - A genuine, explicitly hand-written forward pass classifies signals into 4 intent classes, gated by confidence, improved by a real session-end learning update (completed 2026-07-17)
 - [x] **Phase 4: Response Overlay & Logging** - Confidence-gated inference results render as one of 4 non-blocking overlay responses; every pipeline event is structurally logged (completed 2026-07-19)
-- [ ] **Phase 5: Weight-Push Learning Loop** - Session-end weight updates persist locally and are picked up on the next cold start, closing the learning loop across sessions
+- [x] **Phase 5: Weight-Push Learning Loop** - Session-end weight updates persist locally and are picked up on the next cold start, closing the learning loop across sessions (completed 2026-07-20)
 - [ ] **Phase 6: Integration Verification Against Live Branch 1** - The spec's full manual testing sequence passes end-to-end against a live, gate-passed Branch 1
 
 ## Phase Details
@@ -174,7 +174,7 @@ Plans:
   3. Running 10-20 synthetic sessions back-to-back through the local harness does not collapse the softmax output toward uniform or saturated for the canonical test signals, checked before and after the run.
   4. A malformed or corrupt weight file does not crash the receiver or the SDK's cold-start path — the SDK falls back to the structured-guess cold-start weights instead.
 
-**Plans**: 3/5 plans executed
+**Plans**: 5/5 plans complete
 **Wave 1**
 
 - [x] 05-01-PLAN.md — Wave-0 RED test scaffolding (receiver suite, endSession-returns, initDemo-override/cold-start)
@@ -183,8 +183,8 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 05-04-PLAN.md — Harness bootstrap cold-start fetch + inject, esbuild bundle rebuild
-- [ ] 05-05-PLAN.md — Soak-test script (admin/soak-test-weights.mjs): SC3 stability gate + SC2 GET-readback gate
+- [x] 05-04-PLAN.md — Harness bootstrap cold-start fetch + inject, esbuild bundle rebuild
+- [x] 05-05-PLAN.md — Soak-test script (admin/soak-test-weights.mjs): SC3 stability gate + SC2 GET-readback gate
 
 ### Phase 6: Integration Verification Against Live Branch 1
 
@@ -214,5 +214,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Signal Capture Layer | 4/4 | Complete    | 2026-07-15 |
 | 3. Inference Layer | 5/5 | Complete    | 2026-07-17 |
 | 4. Response Overlay & Logging | 6/6 | Complete    | 2026-07-19 |
-| 5. Weight-Push Learning Loop | 3/5 | In Progress|  |
+| 5. Weight-Push Learning Loop | 5/5 | Complete   | 2026-07-20 |
 | 6. Integration Verification Against Live Branch 1 | 0/TBD | Not started | - |
