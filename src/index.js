@@ -4,7 +4,7 @@
 import { validateConfig } from './config.js';
 import { publish, subscribe } from './bus.js';
 import { initSignalCapture } from './signal.js';
-import { initInference } from './inference.js';
+import { initInference, validateWeightsShape } from './inference.js';
 import { initLogging } from './log.js';
 import { initResponse } from './response.js';
 import schema from '../config/schema.json';
@@ -27,6 +27,16 @@ export function init(rawConfig) {
   // available even over file:// in this project's Playwright/Chromium test
   // environment, 04-RESEARCH.md Code Examples). Never returned from init();
   // it stays internal module state passed to the two initializers only.
+  // Code review CR-02: the weights-shape deep check must run BEFORE any
+  // side-effecting wiring below. config/schema.json only declares
+  // `inference.weights` as `type: "object"` (any shape passes), so
+  // validateConfig() above cannot catch a malformed weights matrix — only
+  // initInference()'s internal validateWeightsShape() call could, but that
+  // ran too late (after initSignalCapture already attached real DOM
+  // listeners). Calling the same hard-fail check here, up front, restores
+  // the "never instrument the DOM against an unvalidated config" invariant
+  // for this case too.
+  if (config.inference?.weights) validateWeightsShape(config.inference.weights);
   const sessionId = crypto.randomUUID();
   // Signal listeners attach only AFTER hard-fail validation passes — never
   // instrument the DOM against an unvalidated config, mirroring the note

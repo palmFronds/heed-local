@@ -92,9 +92,13 @@ function argmax(arr) {
  * resolves to index 0 for — a silent, consistent misclassification instead
  * of a loud, immediate error. Never called against the bundled
  * admin/weights.js default, which is trusted/generated internally.
+ * Exported (code review CR-02) so src/index.js's init() can run this check
+ * BEFORE any DOM wiring happens — see initInference's own call below, which
+ * remains for the repeat-call case, and index.js's up-front call which
+ * covers the very first init().
  * @param {*} weights
  */
-function validateWeightsShape(weights) {
+export function validateWeightsShape(weights) {
   const isMatrix = (m, rows, cols) =>
     Array.isArray(m) &&
     m.length === rows &&
