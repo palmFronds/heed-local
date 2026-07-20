@@ -201,7 +201,15 @@ Plans:
   3. The response overlay renders visually above Branch 1's UI without blocking interaction with the underlying platform.
   4. No `[heed]` log entries fire while on Screen 1 (a screen not present in `activeScreens`).
 
-**Plans**: TBD
+**Plans**: 2 plans (D-07: separate setup + verify)
+
+**Wave 1**
+
+- [ ] 06-01-PLAN.md — Setup: git worktree of feat/demo-platform + npm install, receiver static routes (GET /sdk.js, GET /config/demo-platform-live.json), live config file, uncommitted Heed.init() script tag (INTEG-01 wiring)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 06-02-PLAN.md — Verify: live-branch1 Playwright project + branch1-live.spec.js (SC1-SC4, page.goBack() for back_intent) + human-verify manual walkthrough phase gate (INTEG-01)
 
 ## Progress
 
@@ -215,4 +223,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Inference Layer | 5/5 | Complete    | 2026-07-17 |
 | 4. Response Overlay & Logging | 6/6 | Complete    | 2026-07-19 |
 | 5. Weight-Push Learning Loop | 5/5 | Complete    | 2026-07-20 |
-| 6. Integration Verification Against Live Branch 1 | 0/TBD | Not started | - |
+| 6. Integration Verification Against Live Branch 1 | 0/2 | Not started | - |
