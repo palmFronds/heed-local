@@ -53,6 +53,17 @@ function setCors(res) {
  * @returns {import('node:http').Server}
  */
 export function createReceiver({ weightsPath = DEFAULT_WEIGHTS_PATH } = {}) {
+  // Serializes write-then-rename across concurrent POSTs. Code review WR-02's
+  // first pass (unique per-request temp path) stops two writers from
+  // clobbering each other's temp file, but both still call fs.rename() onto
+  // the SAME weightsPath -- on Windows, two renames targeting one destination
+  // in quick succession can intermittently fail (observed ~15-30% of the
+  // time in verification, AssertionError: expected 500 to be 200). Chaining
+  // every write+rename onto this single promise queue makes the persist step
+  // a true single-writer critical section, closing the race outright rather
+  // than relying on filesystem-specific rename atomicity.
+  let writeQueue = Promise.resolve();
+
   const server = http.createServer((req, res) => {
     setCors(res);
 
@@ -131,25 +142,34 @@ export function createReceiver({ weightsPath = DEFAULT_WEIGHTS_PATH } = {}) {
         // computed per-request (not once per server instance) so two POSTs
         // in flight concurrently (e.g. two browser tabs finishing a session
         // near-simultaneously, or a soak-test run against a live harness
-        // session) each write their own temp file instead of racing to
-        // overwrite a single shared tmpPath mid-flight.
+        // session) each write their own temp file. The write+rename itself
+        // is chained onto writeQueue (not fired directly) so concurrent
+        // renames onto the shared weightsPath are serialized, not raced.
         const tmpPath = `${weightsPath}.${process.pid}.${Date.now()}.${Math.random().toString(36).slice(2)}.tmp`;
-        fs.writeFile(tmpPath, JSON.stringify(body), (writeErr) => {
-          if (writeErr) {
-            res.writeHead(500);
-            res.end();
-            return;
-          }
-          fs.rename(tmpPath, weightsPath, (renameErr) => {
-            if (renameErr) {
-              res.writeHead(500);
-              res.end();
-              return;
-            }
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ ok: true }));
-          });
-        });
+        writeQueue = writeQueue.then(
+          () =>
+            new Promise((resolve) => {
+              fs.writeFile(tmpPath, JSON.stringify(body), (writeErr) => {
+                if (writeErr) {
+                  res.writeHead(500);
+                  res.end();
+                  resolve();
+                  return;
+                }
+                fs.rename(tmpPath, weightsPath, (renameErr) => {
+                  if (renameErr) {
+                    res.writeHead(500);
+                    res.end();
+                    resolve();
+                    return;
+                  }
+                  res.writeHead(200, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ ok: true }));
+                  resolve();
+                });
+              });
+            })
+        );
       });
       req.on('error', () => {
         // Aborted/malformed request stream -- never throw into the process (T-05-01).
