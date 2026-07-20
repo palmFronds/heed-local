@@ -83,6 +83,25 @@ describe('WR-01', () => {
   });
 });
 
+describe('Phase 5 review WR-01: additionalProperties enforcement', () => {
+  it('hard-fails (throws) when a top-level config has a typo\'d/unrecognized key', () => {
+    const badConfig = { ...demoConfig, weightPushUrll: 'http://localhost:4310/weights' };
+    expect(() => validateConfig(badConfig, schema)).toThrow(/weightPushUrll: unrecognized field/);
+  });
+
+  it('hard-fails (throws) when config.inference has a typo\'d/unrecognized key', () => {
+    const badConfig = {
+      ...demoConfig,
+      inference: { confidenceThresholdd: 0.4 },
+    };
+    expect(() => validateConfig(badConfig, schema)).toThrow(/confidenceThresholdd: unrecognized field/);
+  });
+
+  it('still validates the demo platform config cleanly with additionalProperties enforcement on', () => {
+    expect(() => validateConfig(demoConfig, schema)).not.toThrow();
+  });
+});
+
 describe('CFG-02', () => {
   it('hard-fails (throws) when required top-level fields are missing', () => {
     expect(() => validateConfig({ platformId: 'x' }, schema)).toThrow();

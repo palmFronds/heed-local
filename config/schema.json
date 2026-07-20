@@ -2,6 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "required": ["platformId", "selectors", "completionSelector", "partnerOrigin"],
+  "additionalProperties": false,
   "properties": {
     "platformId": { "type": "string" },
     "completionSelector": { "type": "string" },
@@ -20,6 +21,7 @@
         "backBtn",
         "flowComplete"
       ],
+      "additionalProperties": false,
       "properties": {
         "amountInput": { "type": "string" },
         "feeRow": { "type": "string" },
@@ -32,15 +34,18 @@
     },
     "signals": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "touchHesitation": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
             "thresholdMs": { "type": "number" }
           }
         },
         "scrollReversal": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
             "depthThresholdPct": { "type": "number" },
             "minReversalDeltaPx": { "type": "number" }
@@ -50,6 +55,7 @@
     },
     "inference": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "confidenceThreshold": { "type": "number" },
         "weights": { "type": "object" }

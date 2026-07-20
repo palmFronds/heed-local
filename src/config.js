@@ -1,5 +1,5 @@
 // src/config.js — generic interpreter over a restricted JSON-Schema-draft-07 subset.
-// Implements only: type, required, properties, enum.
+// Implements only: type, required, properties, enum, additionalProperties (code review WR-01).
 // Never soft-fail-and-return; always throws on any violation (CFG-02 hard-fail).
 // Selector strings never live here — only in config/demo-platform.json.
 
@@ -35,6 +35,19 @@ function walk(value, schemaNode, path, errors) {
     }
     for (const [key, subSchema] of Object.entries(schemaNode.properties)) {
       if (key in value) walk(value[key], subSchema, `${path}.${key}`, errors);
+    }
+    // Code review WR-01: reject any key present on `value` that isn't
+    // declared in schemaNode.properties when additionalProperties is
+    // explicitly false — otherwise a typo'd/malformed partner config key
+    // (e.g. "weightPushUrll") silently passes validation and the SDK
+    // falls back to defaults with zero diagnostic signal, contradicting
+    // CFG-02's "hard-fail, never partial/silent" philosophy.
+    if (schemaNode.additionalProperties === false) {
+      for (const key of Object.keys(value)) {
+        if (!(key in schemaNode.properties)) {
+          errors.push(`${path}.${key}: unrecognized field not allowed by schema`);
+        }
+      }
     }
   }
 
