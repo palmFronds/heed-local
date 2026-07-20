@@ -154,8 +154,30 @@
 
 <script src="../dist/sdk.js"></script>
 <script>
-  // Init against the bundled demo config — no backend, no fetch.
-  window.Heed.initDemo();
+  // Harness (not the SDK bundle) owns the cold-start GET: fetch the
+  // receiver's persisted weights before init, injecting them via
+  // initDemo(overrides) if present. Any fetch/parse failure (network error,
+  // non-ok status, bad JSON) leaves overrides.weights unset, and the
+  // .finally() below guarantees initDemo() still runs — falling through to
+  // the SDK's own cold-start fallback (config.inference?.weights ??
+  // coldStartWeights, INF-05). Shape validation happens receiver-side
+  // (GET /weights re-validates on-disk shape) and is belt-and-suspendered
+  // again by init()'s validateWeightsShape() on whatever lands in
+  // overrides.weights (D-06/D-07).
+  (function boot() {
+    var overrides = {};
+    fetch('http://localhost:4310/weights')
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (weights) {
+        if (weights) overrides.weights = weights;
+      })
+      .catch(function () {
+        // network error / bad JSON — omit weights, cold-start fallback takes over (D-06/D-07)
+      })
+      .finally(function () {
+        window.Heed.initDemo(overrides);
+      });
+  })();
 
   var logEl = document.getElementById('log');
 
