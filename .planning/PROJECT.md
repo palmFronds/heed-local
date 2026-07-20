@@ -43,10 +43,10 @@ exists to prove it's built right.
 - [x] Config validation hard-fails on invalid schema — Validated in Phase 1: Config Layer, Bus & Standalone Test Harness (array-type validation gap fixed in Phase 4)
 - [x] Logging layer: every entry `{ ts, sessionId, partnerId, event, data }`, event types `signal_detected | inference_run | response_fired | response_dismissed | flow_complete | flow_abandoned`, emitted via `console.log('[heed]', JSON.stringify(entry))` — Validated in Phase 4: Response Overlay & Logging
 - [x] Standalone local test harness (static HTML, not the real Next.js app) exposing all 7 `data-heed` selectors so every signal type can be manually triggered without a running Branch 1 — Validated in Phase 1: Config Layer, Bus & Standalone Test Harness
+- [x] Real local weight-push receiver: minimal local server accepts the session-end POST, persists the updated weight array to a local JSON file, and `sdk.js` cold-start reads that file if present (falling back to the structured-guess weights otherwise) — closes the learning loop across sessions — Validated in Phase 5: Weight-Push Learning Loop
 
 ### Active
 
-- [ ] Real local weight-push receiver: minimal local server accepts the session-end POST, persists the updated weight array to a local JSON file, and `sdk.js` cold-start reads that file if present (falling back to the structured-guess weights otherwise) — closes the learning loop across sessions
 - [ ] Manual testing sequence from the spec passes against a live Branch 1 once available: press-and-hold triggers hesitation, blur-without-typing triggers blur_incomplete, scroll down/up triggers scroll_reversal, back button before success triggers back_intent, log sequence is `signal_detected → inference_run → response_fired`, overlay renders above platform UI without blocking interaction, no logs fire on Screen 1 (not in `activeScreens`)
 
 ### Out of Scope
@@ -83,10 +83,10 @@ exists to prove it's built right.
 | Build all 4 signal types and all 4 response types in v1, no narrowing | Learning build — each signal/response type teaches a distinct technical pattern; cutting any cuts that lesson | — Pending |
 | Inference layer gets dedicated, deeper planning phase(s) vs. interleaved | Explicitly the conceptual core of the product per spec and user direction; signal/response layers are comparatively mechanical | — Pending |
 | Standalone local static-HTML test harness (not dependent on live Branch 1) | Branch 1 isn't gate-passed yet; the 7 selectors are locked in CONTRACT.md independent of Branch 1's build status, so signal/config work can proceed and be tested now | — Pending |
-| Real local weight-push receiver that persists and reloads weights | Closes the actual learning loop across sessions (not just a logged stub) — teaches weight serialization and cold-start-vs-learned-weight handling, matching the "learning build" goal | — Pending |
+| Real local weight-push receiver that persists and reloads weights | Closes the actual learning loop across sessions (not just a logged stub) — teaches weight serialization and cold-start-vs-learned-weight handling, matching the "learning build" goal | ✓ Good |
 | Waterfall rule relaxed to allow Branch 2 planning before Branch 1's gate passes | Deliberate project-owner override recorded in CLAUDE.md | ✓ Good |
 | brain.js used for training/weight-export only; forward pass in `sdk.js` is hand-written (reads exported W1/b1/W2/b2 arrays) | Satisfies PROJECT.md's "explicit forward pass, not black-box" requirement; also avoids shipping brain.js's ~1MB unminified browser bundle (with unused RNN/LSTM/conv code) in a single-file SDK | ✓ Good |
 | esbuild used as a dev-only build tool to produce the single flat `sdk.js`; partner integration remains zero-build, one `<script>` tag | Reconciles CLAUDE.md's "no bundler" rule (meant for the SDK/partner surface) with the mechanical reality that combining hand-written code + exported weights into one file needs some build step for the Heed team | ✓ Good |
 
 ---
-*Last updated: 2026-07-19 — Phase 4 (Response Overlay & Logging) complete: RESP-01/02/03, LOG-01 validated*
+*Last updated: 2026-07-20 — Phase 5 (Weight-Push Learning Loop) complete: WEIGHT-01 validated*
