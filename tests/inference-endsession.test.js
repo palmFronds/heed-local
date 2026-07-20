@@ -132,4 +132,40 @@ describe('INF-04', () => {
 
     expect(() => endSession(config, undefined)).toThrow(TypeError);
   });
+
+  // RED (Wave 0, Phase 5): endSession() currently discards the weights it
+  // just computed (returns undefined) -- src/log.js has nothing to POST
+  // unless this is fixed (05-RESEARCH.md Pitfall 1, Architecture Pattern 2).
+  // This case is RED until Plan 05-0x adds `return activeWeights;` as the
+  // last line of endSession().
+  it('endSession returns the updated {W1,b1,W2,b2} weights object (05-RESEARCH.md Pitfall 1)', () => {
+    const config = { inference: { weights: WEIGHTS, confidenceThreshold: 0.65 } };
+    initInference(config);
+    publish('signal:detected', touchHesitationSignal()); // seeds lastInference
+
+    const returned = endSession(config, false);
+
+    // Must be a real {W1,b1,W2,b2} object, not undefined -- src/log.js's
+    // POST body would otherwise be the literal string "undefined"/"null".
+    expect(returned).toBeDefined();
+    expect(Array.isArray(returned.W1)).toBe(true);
+    expect(Array.isArray(returned.b1)).toBe(true);
+    expect(Array.isArray(returned.W2)).toBe(true);
+    expect(Array.isArray(returned.b2)).toBe(true);
+
+    // The returned object must be the SAME post-update activeWeights the
+    // next forwardPass reads -- not a stale copy of the pre-update WEIGHTS
+    // fixture and not a value disconnected from the module's real state.
+    const received = collectInferenceResults();
+    publish('signal:detected', touchHesitationSignal());
+    const nextResult = received[received.length - 1];
+    const expectedFromReturned = forwardPass([1, 0, 0, 0], returned);
+    expect(nextResult.probs[0]).toBeCloseTo(expectedFromReturned.probs[0], 9);
+
+    // And it must genuinely differ from a forward pass against the
+    // untouched original fixture -- proving `returned` is the UPDATED
+    // weights, not an accidental pass-through of the pre-update input.
+    const expectedFromOriginal = forwardPass([1, 0, 0, 0], WEIGHTS);
+    expect(nextResult.probs[0]).not.toBeCloseTo(expectedFromOriginal.probs[0], 9);
+  });
 });
