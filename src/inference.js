@@ -301,4 +301,5 @@ export function endSession(config, outcome) {
   // Hand-rolled single gradient step — brain.js is NOT imported here, keeping it fully out of
   // the shipped bundle (PROJECT.md: training/weight-export only; 03-RESEARCH.md Pitfall #4).
   activeWeights = gradientStep(lastInference.input, target, activeWeights, 0.01);
+  return activeWeights; // src/log.js needs the updated weights to POST at session end (SC1, 05-RESEARCH.md Pitfall 1)
 }
