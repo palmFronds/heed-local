@@ -133,6 +133,7 @@ None yet.
 - Research flag for Phase 3 planning: cold-start weight magnitude tuning (not just directional correctness) has no established recipe and needs empirical validation during planning/execution, with softmax-margin verification as the acceptance gate.
 - Research flag for Phase 3 planning: brain.js's `train()` single-example/single-iteration semantics need direct verification against source/behavior — unconfirmed whether it produces one online gradient update vs. iterating to convergence on one example.
 - Research flag for Phase 5 planning: multi-signal session credit assignment ("most-proximal signal" heuristic) is a reasonable default but unvalidated — should be documented as an accepted limitation, not silently implemented.
+- Code review WR-03 (Phase 5): `endSession`'s `buildTarget` derives its training target purely from the model's own prior prediction (no independent ground-truth signal) — a self-reinforcing loop with no corrective force against an early wrong classification. The 16-session soak test only checks for softmax collapse/saturation over a short, alternating-outcome run; it does not test long-run drift toward a degenerate dominant-class predictor under a skewed real-world outcome distribution. Accepted as in-scope design (03-RESEARCH.md Assumption A1) — flagged here as a known limitation, not re-litigated. Revisit if production traffic shows single-class dominance.
 
 ## Deferred Items
 
