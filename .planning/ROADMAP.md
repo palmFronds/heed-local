@@ -175,9 +175,14 @@ Plans:
   4. A malformed or corrupt weight file does not crash the receiver or the SDK's cold-start path — the SDK falls back to the structured-guess cold-start weights instead.
 
 **Plans**: 5 plans
+**Wave 1**
+
 - [ ] 05-01-PLAN.md — Wave-0 RED test scaffolding (receiver suite, endSession-returns, initDemo-override/cold-start)
 - [ ] 05-02-PLAN.md — Node http receiver (local-receiver/server.js) + weightPushUrl schema/demo config + npm scripts + gitignore
 - [ ] 05-03-PLAN.md — SDK wiring: endSession() return, src/log.js fetch/sendBeacon push split, initDemo(overrides) injection
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 05-04-PLAN.md — Harness bootstrap cold-start fetch + inject, esbuild bundle rebuild
 - [ ] 05-05-PLAN.md — Soak-test script (admin/soak-test-weights.mjs): SC3 stability gate + SC2 GET-readback gate
 
