@@ -50,6 +50,17 @@ function margin(probs) {
   return sorted[0] - sorted[1];
 }
 
+// Code review WR-04: normalizes {W1,b1,W2,b2} key order explicitly before
+// stringifying, so this comparison is correct regardless of the incidental
+// key order either object was constructed with -- JSON.stringify's output
+// is key-order-dependent, and relying on that incidentally (both objects
+// here happen to always be built with the same {W1,b1,W2,b2} order today)
+// would silently produce a false "differs"/"identical" result the day any
+// future code constructs a weights object with keys in a different order.
+function stableWeightsKey(w) {
+  return JSON.stringify({ W1: w.W1, b1: w.b1, W2: w.W2, b2: w.b2 });
+}
+
 // Generalized over admin/print-softmax-margins.mjs's printVector: accepts an
 // explicit `weights` argument so it can print cold-start ("before") and
 // persisted/post-soak ("after") vectors from the same helper.
@@ -172,7 +183,7 @@ if (!getResponse.ok) {
     console.error('  GATE FAIL: persisted weights returned by GET /weights are not a valid {W1,b1,W2,b2} shape');
     allPass = false;
   } else {
-    const differsFromColdStart = JSON.stringify(persisted) !== JSON.stringify(coldStartWeights);
+    const differsFromColdStart = stableWeightsKey(persisted) !== stableWeightsKey(coldStartWeights);
     if (!differsFromColdStart) {
       console.error('  GATE FAIL: persisted weights are byte-identical to cold-start defaults -- a restart would NOT load learned weights');
       allPass = false;
