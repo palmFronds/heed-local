@@ -174,7 +174,12 @@ Plans:
   3. Running 10-20 synthetic sessions back-to-back through the local harness does not collapse the softmax output toward uniform or saturated for the canonical test signals, checked before and after the run.
   4. A malformed or corrupt weight file does not crash the receiver or the SDK's cold-start path — the SDK falls back to the structured-guess cold-start weights instead.
 
-**Plans**: TBD
+**Plans**: 5 plans
+- [ ] 05-01-PLAN.md — Wave-0 RED test scaffolding (receiver suite, endSession-returns, initDemo-override/cold-start)
+- [ ] 05-02-PLAN.md — Node http receiver (local-receiver/server.js) + weightPushUrl schema/demo config + npm scripts + gitignore
+- [ ] 05-03-PLAN.md — SDK wiring: endSession() return, src/log.js fetch/sendBeacon push split, initDemo(overrides) injection
+- [ ] 05-04-PLAN.md — Harness bootstrap cold-start fetch + inject, esbuild bundle rebuild
+- [ ] 05-05-PLAN.md — Soak-test script (admin/soak-test-weights.mjs): SC3 stability gate + SC2 GET-readback gate
 
 ### Phase 6: Integration Verification Against Live Branch 1
 
@@ -204,5 +209,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Signal Capture Layer | 4/4 | Complete    | 2026-07-15 |
 | 3. Inference Layer | 5/5 | Complete    | 2026-07-17 |
 | 4. Response Overlay & Logging | 6/6 | Complete    | 2026-07-19 |
-| 5. Weight-Push Learning Loop | 0/TBD | Not started | - |
+| 5. Weight-Push Learning Loop | 0/5 | Not started | - |
 | 6. Integration Verification Against Live Branch 1 | 0/TBD | Not started | - |
