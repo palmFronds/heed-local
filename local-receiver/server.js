@@ -149,6 +149,17 @@ export function createReceiver({ weightsPath = DEFAULT_WEIGHTS_PATH } = {}) {
       });
       req.on('error', () => {
         // Aborted/malformed request stream -- never throw into the process (T-05-01).
+        // Code review CR-01: a response may already have been sent on this
+        // request (e.g. the 413 size-limit branch above already called
+        // res.writeHead()/res.end() and req.destroy()'d the stream) before
+        // this 'error' event fires -- Node's IncomingMessage can still emit
+        // 'error' after .destroy(). Calling res.writeHead() a second time in
+        // that case throws ERR_HTTP_HEADERS_SENT synchronously inside this
+        // listener with no surrounding try/catch, which would crash the
+        // process -- exactly what this comment says must never happen. Guard
+        // on both destroyed and res.headersSent so this handler is a no-op
+        // once a response has already gone out.
+        if (destroyed || res.headersSent) return;
         destroyed = true;
         res.writeHead(400);
         res.end();

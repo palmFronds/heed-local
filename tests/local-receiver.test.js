@@ -107,6 +107,47 @@ describe('local-receiver', () => {
     expect(resValid.status).toBe(200);
   });
 
+  it('an oversized POST body is rejected with 413, never crashes the server, and a following valid request still succeeds (SC4, code review CR-01)', async () => {
+    // MAX_BODY_BYTES is 64 * 1024 in local-receiver/server.js -- send well
+    // past that so the 'data' handler's size check fires and destroys the
+    // request stream (res.writeHead(413); res.end(); req.destroy()). This
+    // exercises the path that used to risk a second, unguarded
+    // res.writeHead() call from the req.on('error') handler firing after
+    // the 413 response had already completed, which threw
+    // ERR_HTTP_HEADERS_SENT and could crash the whole process.
+    const oversizedBody = 'a'.repeat(128 * 1024);
+    try {
+      const resOversized = await fetch(`http://localhost:${port}/weights`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: oversizedBody,
+      });
+      expect(resOversized.status).toBe(413);
+    } catch (err) {
+      // The server's 413 branch calls req.destroy() immediately after
+      // writing the response, which can tear down the underlying socket
+      // before the client finishes reading the response bytes -- an
+      // ECONNRESET on the client side here is an acceptable outcome of
+      // that pre-existing destroy-on-oversized-body behavior, not a
+      // regression. What this test actually guards against (CR-01) is the
+      // server PROCESS crashing from a double res.writeHead() -- verified
+      // below by checking a follow-up request still succeeds.
+      expect(err).toBeInstanceOf(Error);
+    }
+    expect(fs.existsSync(weightsPath)).toBe(false);
+
+    // The server process must still be up and answering -- if the
+    // req.on('error') double-response bug fired, the uncaught
+    // ERR_HTTP_HEADERS_SENT exception would have crashed the process and
+    // this next request would never complete.
+    const resValid = await fetch(`http://localhost:${port}/weights`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(VALID_WEIGHTS),
+    });
+    expect(resValid.status).toBe(200);
+  });
+
   it('a corrupt on-disk weights file does not crash the receiver and is never served as-is on GET (SC4)', async () => {
     // Pre-write garbage directly to the temp weights path (simulating an
     // externally-corrupted file), bypassing the receiver's own POST path.
