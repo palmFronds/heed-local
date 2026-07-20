@@ -9,6 +9,13 @@
 import { forwardPass, initInference, endSession } from '../src/inference.js';
 import { publish } from '../src/bus.js';
 import coldStartWeights from './weights.js';
+// Reused (not re-implemented) for the SC2 GET-readback shape check below --
+// isValidWeights is a boolean-returning, never-throwing validator (D-06's
+// receiver-side posture); importing local-receiver/server.js is safe here
+// since its .listen() call is guarded behind an isMain check (only runs when
+// invoked directly as `node local-receiver/server.js`), so this import never
+// binds a port.
+import { isValidWeights } from '../local-receiver/server.js';
 
 // CLASSES and SIGNAL_ORDER are module-scoped (not exported) constants in
 // src/inference.js, so both are re-declared here matching that file's values
@@ -136,9 +143,68 @@ for (const { vector, result } of afterResults) {
   }
 }
 
+// SC2 -- the deterministic verification of "restarting the harness loads learned,
+// not cold-start, weights" (05-RESEARCH.md Open Question #2 resolution). Reads the
+// persisted weights back through the receiver's GET /weights endpoint -- the SAME
+// endpoint the 05-04 harness bootstrap fetches before init() -- and proves (a) the
+// response is a valid {W1,b1,W2,b2} shape, (b) it DIFFERS from cold-start defaults
+// (a restart would not silently reload admin/weights.js), and (c) it losslessly
+// reproduces the in-memory "after" margins computed above (the persistence
+// round-trip did not lose or corrupt anything). Does NOT re-run the soak loop --
+// only reads back and asserts against the state Task 1's loop already produced.
+console.log('\n--- SC2 gate: persisted weights are what a cold-start restart would load ---');
+let getResponse;
+try {
+  getResponse = await fetch(RECEIVER_URL);
+} catch (err) {
+  console.error(`\nFATAL: GET readback failed -- could not reach the receiver at ${RECEIVER_URL}`);
+  console.error(`  ${err.message}`);
+  process.exit(1);
+}
+
+if (!getResponse.ok) {
+  console.error(`  GATE FAIL: GET ${RECEIVER_URL} returned status ${getResponse.status}`);
+  allPass = false;
+} else {
+  const persisted = await getResponse.json();
+
+  if (!isValidWeights(persisted)) {
+    console.error('  GATE FAIL: persisted weights returned by GET /weights are not a valid {W1,b1,W2,b2} shape');
+    allPass = false;
+  } else {
+    const differsFromColdStart = JSON.stringify(persisted) !== JSON.stringify(coldStartWeights);
+    if (!differsFromColdStart) {
+      console.error('  GATE FAIL: persisted weights are byte-identical to cold-start defaults -- a restart would NOT load learned weights');
+      allPass = false;
+    } else {
+      console.log('  GATE PASS: persisted weights differ from cold-start defaults');
+    }
+
+    let roundTripLossless = true;
+    const TOLERANCE = 1e-9;
+    for (const { vector, result } of afterResults) {
+      const persistedProbs = forwardPass(vector.input, persisted).probs;
+      const persistedTopProb = persistedProbs[argmax(persistedProbs)];
+      const persistedMargin = margin(persistedProbs);
+      const topProbDiff = Math.abs(persistedTopProb - result.topProb);
+      const marginDiff = Math.abs(persistedMargin - result.margin);
+      if (topProbDiff > TOLERANCE || marginDiff > TOLERANCE) {
+        console.error(
+          `  GATE FAIL (${vector.label}): forwardPass against persisted weights diverges from the in-memory "after" result (topProb diff ${topProbDiff}, margin diff ${marginDiff})`,
+        );
+        roundTripLossless = false;
+        allPass = false;
+      }
+    }
+    if (roundTripLossless) {
+      console.log('  GATE PASS: forwardPass against persisted weights losslessly reproduces the in-memory "after" margins');
+    }
+  }
+}
+
 console.log('\n=== Summary ===');
 if (allPass) {
-  console.log(`PASS -- ${SESSION_COUNT} synthetic sessions round-tripped through the real receiver with no softmax collapse or saturation (SC3).`);
+  console.log(`PASS -- ${SESSION_COUNT} synthetic sessions round-tripped through the real receiver with no softmax collapse or saturation (SC3), and the GET-readback proves persisted weights are learned + losslessly round-tripped (SC2).`);
   process.exit(0);
 } else {
   console.error('FAIL -- one or more gates failed. See GATE FAIL lines above.');
