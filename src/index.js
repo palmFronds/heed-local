@@ -42,15 +42,24 @@ export function init(rawConfig) {
   // instrument the DOM against an unvalidated config, mirroring the note
   // above that an invalid config must stop initialization entirely (CFG-02).
   initSignalCapture(config);
+  // log.js owns session-lifecycle wiring (flow:complete / pagehide /
+  // sessionEnded guard / endSession) — initialized before initInference so
+  // log.js's 'signal:detected' subscription registers first on the shared
+  // EventTarget bus (src/bus.js dispatches same-event-type listeners in
+  // registration order, synchronously). This makes log.js write
+  // signal_detected before inference's handler runs its inference:result
+  // cascade, correcting INTEG-01 SC2's required ordering (signal_detected ->
+  // inference_run -> response_fired). It also remains before initResponse,
+  // preserving the existing invariant that logging's subscriptions are
+  // registered before the first inference:result could ever arrive
+  // (04-RESEARCH.md Assumption A1) — inference_run (log.js's
+  // inference:result listener, registered here) still precedes
+  // response_fired (response.js's, registered last below).
+  initLogging(config, sessionId);
   // Inference wiring attaches only AFTER hard-fail validation passes too —
   // same reasoning as initSignalCapture above: never subscribe the forward
   // pass to signal:detected against a partially-valid config.
   initInference(config);
-  // log.js owns session-lifecycle wiring (flow:complete / pagehide /
-  // sessionEnded guard / endSession) — initialized before response.js so its
-  // subscriptions are registered before the first inference:result could
-  // ever arrive (04-RESEARCH.md Assumption A1).
-  initLogging(config, sessionId);
   initResponse(config, sessionId);
   // Return shape stays exactly { config, publish, subscribe } — signal
   // capture, inference, logging, and response wiring are all side-effecting,
