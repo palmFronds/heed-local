@@ -226,6 +226,7 @@ test.describe('Branch 1 live integration (INTEG-01)', () => {
   }) => {
     await page.goto('/swap');
     await page.waitForFunction(() => window.__heedReady === true);
+    await page.locator('[data-heed="amount-input"]').fill('1');
 
     await holdProceedCtaPastThreshold(page);
 
