@@ -1,0 +1,306 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* ============================================
+   DESIGN TOKENS — Premium Web3 Dark Theme
+   ============================================ */
+:root {
+  /* Deep navy base — #0a0e1a equivalent in oklch */
+  --background: oklch(0.08 0.022 265);
+  --foreground: oklch(0.96 0.005 265);
+
+  /* Glassmorphic cards */
+  --card: oklch(0.12 0.018 265);
+  --card-foreground: oklch(0.96 0.005 265);
+  --popover: oklch(0.12 0.018 265);
+  --popover-foreground: oklch(0.96 0.005 265);
+
+  /* Neon green primary — vibrant crypto accent */
+  --primary: oklch(0.76 0.22 152);
+  --primary-foreground: oklch(0.08 0.022 265);
+
+  /* Subtle elevated surfaces */
+  --secondary: oklch(0.18 0.016 265);
+  --secondary-foreground: oklch(0.82 0.005 265);
+
+  --muted: oklch(0.15 0.012 265);
+  --muted-foreground: oklch(0.52 0.008 265);
+
+  --accent: oklch(0.18 0.016 265);
+  --accent-foreground: oklch(0.96 0.005 265);
+
+  --destructive: oklch(0.62 0.22 25);
+
+  /* Hairline borders */
+  --border: oklch(0.22 0.012 265);
+  --input: oklch(0.16 0.014 265);
+  --ring: oklch(0.76 0.22 152);
+
+  --chart-1: oklch(0.76 0.22 152);
+  --chart-2: oklch(0.65 0.18 200);
+  --chart-3: oklch(0.58 0.14 260);
+  --chart-4: oklch(0.55 0.16 290);
+  --chart-5: oklch(0.50 0.14 320);
+
+  --radius: 0.85rem;
+
+  --sidebar: oklch(0.10 0.020 265);
+  --sidebar-foreground: oklch(0.96 0.005 265);
+  --sidebar-primary: oklch(0.76 0.22 152);
+  --sidebar-primary-foreground: oklch(0.08 0.022 265);
+  --sidebar-accent: oklch(0.18 0.016 265);
+  --sidebar-accent-foreground: oklch(0.96 0.005 265);
+  --sidebar-border: oklch(0.22 0.012 265);
+  --sidebar-ring: oklch(0.76 0.22 152);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* ============================================
+   VIEWPORT LOCK — 390px iPhone 14 only
+   ============================================ */
+#mobile-app {
+  width: 390px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  position: relative;
+}
+
+#desktop-fallback {
+  display: none;
+}
+
+@media (min-width: 431px) {
+  #mobile-app {
+    display: none !important;
+  }
+  #desktop-fallback {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    min-height: 100dvh;
+    color: oklch(0.6 0 0);
+    font-size: 1.125rem;
+    text-align: center;
+    padding: 2rem;
+  }
+}
+
+/* ============================================
+   GLASSMORPHISM CARD UTILITY
+   ============================================ */
+.glass-card {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* ============================================
+   NEON GLOW UTILITIES
+   ============================================ */
+.glow-green {
+  box-shadow:
+    0 0 20px rgba(74, 222, 128, 0.18),
+    0 0 60px rgba(74, 222, 128, 0.08);
+}
+
+.glow-green-btn {
+  box-shadow:
+    0 4px 24px rgba(74, 222, 128, 0.28),
+    0 1px 4px rgba(0, 0, 0, 0.4);
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.glow-green-btn:hover {
+  box-shadow:
+    0 4px 32px rgba(74, 222, 128, 0.42),
+    0 1px 8px rgba(0, 0, 0, 0.5);
+  transform: translateY(-1px);
+}
+
+.glow-green-btn:active {
+  transform: translateY(0px);
+  box-shadow:
+    0 2px 16px rgba(74, 222, 128, 0.22),
+    0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================
+   SUBTLE GRADIENT BACKGROUNDS
+   ============================================ */
+.bg-page {
+  background:
+    radial-gradient(ellipse 80% 40% at 50% -10%, rgba(74, 222, 128, 0.06) 0%, transparent 60%),
+    oklch(0.08 0.022 265);
+}
+
+.bg-page-confirm {
+  background:
+    radial-gradient(ellipse 70% 35% at 50% 0%, rgba(74, 222, 128, 0.05) 0%, transparent 55%),
+    oklch(0.08 0.022 265);
+}
+
+/* ============================================
+   MICRO-INTERACTION: Input focus ring
+   ============================================ */
+.heed-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 1.5px rgba(74, 222, 128, 0.4);
+}
+
+/* ============================================
+   TOKEN ICON WRAPPER
+   ============================================ */
+.token-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   SWAP ARROW BUTTON ANIMATION
+   ============================================ */
+.swap-arrow {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.swap-arrow:hover {
+  transform: rotate(180deg) scale(1.1);
+}
+
+/* ============================================
+   ASSET ROW HOVER
+   ============================================ */
+.asset-row {
+  transition: background 0.18s ease, transform 0.15s ease;
+}
+.asset-row:hover {
+  transform: translateX(2px);
+}
+
+/* ============================================
+   SUCCESS PAGE ANIMATIONS
+   ============================================ */
+.checkmark-ring {
+  background: radial-gradient(circle, rgba(74, 222, 128, 0.14) 0%, transparent 70%);
+  box-shadow:
+    0 0 40px rgba(74, 222, 128, 0.2),
+    0 0 80px rgba(74, 222, 128, 0.08);
+  animation: ring-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes ring-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 24px rgba(74, 222, 128, 0.15),
+      0 0 60px rgba(74, 222, 128, 0.07);
+  }
+  50% {
+    box-shadow:
+      0 0 36px rgba(74, 222, 128, 0.30),
+      0 0 90px rgba(74, 222, 128, 0.14);
+  }
+}
+
+.checkmark-path {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: draw-check 0.55s cubic-bezier(0.4, 0, 0.2, 1) 0.25s forwards;
+}
+
+@keyframes draw-check {
+  to { stroke-dashoffset: 0; }
+}
+
+.checkmark-icon {
+  animation: scale-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+}
+
+@keyframes scale-in {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+.success-card-in {
+  animation: slide-up 0.45s cubic-bezier(0.34, 1.2, 0.64, 1) 0.5s both;
+}
+
+@keyframes slide-up {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+.confetti-particle {
+  top: -6px;
+  animation: confetti-fall 3s ease-in forwards;
+  opacity: 0;
+}
+
+@keyframes confetti-fall {
+  0%   { transform: translateY(0) rotate(0deg) scale(1); opacity: 0; }
+  8%   { opacity: 1; }
+  100% { transform: translateY(100dvh) rotate(800deg) scale(0.2); opacity: 0; }
+}
