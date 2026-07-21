@@ -4,17 +4,17 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 6
 current_phase_name: Integration Verification Against Live Branch 1
-status: executing
-stopped_at: Phase 6 Plan 06-02 paused at Task 3 human-verify checkpoint
-last_updated: "2026-07-21T02:15:36.815Z"
+status: complete
+stopped_at: Phase 6 complete — Task 3 human-verify checkpoint approved, milestone v1.0 done
+last_updated: "2026-07-21T04:30:00.000Z"
 last_activity: 2026-07-21
-last_activity_desc: Completed quick task 260720-wau — fixed SC2 log-order bug and SC3 test gap found during Phase 6 Plan 06-02 human-verify checkpoint
+last_activity_desc: Phase 6 Task 3 human-verify checkpoint approved by operator — INTEG-01 satisfied, milestone v1.0 complete
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 27
-  completed_plans: 26
-  percent: 83
+  completed_plans: 27
+  percent: 100
 ---
 
 # Project State
@@ -24,16 +24,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-09)
 
 **Core value:** All four signal types (touch hesitation, blur incomplete, scroll reversal, back intent) are captured cleanly and fed through a correctly implemented 2-layer feedforward net that produces a real probability distribution over intent classes — not a lookup table wearing a neural network's clothes.
-**Current focus:** Phase 05 — weight-push-learning-loop
+**Current focus:** Milestone v1.0 complete — all 6 phases done, ready for `/gsd-complete-milestone`
 
 ## Current Position
 
 Phase: 6 — Integration Verification Against Live Branch 1
-Plan: 1 of 2
-Status: Ready to execute
-Last activity: 2026-07-21 — Completed quick task 260720-wau: fixed SC2 log-order bug and SC3 test gap found during Phase 6 Plan 06-02 human-verify checkpoint
+Plan: 2 of 2
+Status: Complete — Phase 6 gate closed, milestone v1.0 done
+Last activity: 2026-07-21 — Phase 6 Task 3 human-verify checkpoint approved by operator; INTEG-01 satisfied
 
-Progress: [██░░░░░░░░] 17%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -133,7 +133,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 6 (Integration Verification) is externally blocked on Branch 1 (heed-demo-platform) reaching its own gate-pass. Branch 1 is mid-Phase-1 as of this roadmap's creation. Do not assume unblocked when reaching Phase 6 — re-check Branch 1's STATE.md first.
+- ~~Phase 6 (Integration Verification) is externally blocked on Branch 1 (heed-demo-platform) reaching its own gate-pass.~~ RESOLVED 2026-07-21: Branch 1's gate passed independently; Phase 6 executed and closed against a live worktree'd `feat/demo-platform`. Milestone v1.0 complete.
 - Research flag for Phase 3 planning: cold-start weight magnitude tuning (not just directional correctness) has no established recipe and needs empirical validation during planning/execution, with softmax-margin verification as the acceptance gate.
 - Research flag for Phase 3 planning: brain.js's `train()` single-example/single-iteration semantics need direct verification against source/behavior — unconfirmed whether it produces one online gradient update vs. iterating to convergence on one example.
 - Research flag for Phase 5 planning: multi-signal session credit assignment ("most-proximal signal" heuristic) is a reasonable default but unvalidated — should be documented as an accepted limitation, not silently implemented.
@@ -156,6 +156,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-21T02:15:36.799Z
-Stopped at: Phase 6 Plan 06-02 paused at Task 3 human-verify checkpoint
-Resume file: .planning/phases/06-integration-verification-against-live-branch-1/06-02-PLAN.md
+Last session: 2026-07-21T04:30:00.000Z
+Stopped at: Phase 6 complete — milestone v1.0 done, ready for /gsd-complete-milestone
+Resume file: .planning/phases/06-integration-verification-against-live-branch-1/06-02-SUMMARY.md
