@@ -5,10 +5,10 @@ milestone_name: milestone
 current_phase: 6
 current_phase_name: Integration Verification Against Live Branch 1
 status: executing
-stopped_at: Phase 6 context gathered
-last_updated: "2026-07-20T23:48:26.276Z"
-last_activity: 2026-07-20
-last_activity_desc: Phase 05 complete, transitioned to Phase 6
+stopped_at: Phase 6 Plan 06-02 paused at Task 3 human-verify checkpoint
+last_updated: "2026-07-21T02:15:36.815Z"
+last_activity: 2026-07-21
+last_activity_desc: Completed quick task 260720-wau — fixed SC2 log-order bug and SC3 test gap found during Phase 6 Plan 06-02 human-verify checkpoint
 progress:
   total_phases: 6
   completed_phases: 5
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-07-09)
 Phase: 6 — Integration Verification Against Live Branch 1
 Plan: 1 of 2
 Status: Ready to execute
-Last activity: 2026-07-20 — Phase 05 complete, transitioned to Phase 6
+Last activity: 2026-07-21 — Completed quick task 260720-wau: fixed SC2 log-order bug and SC3 test gap found during Phase 6 Plan 06-02 human-verify checkpoint
 
 Progress: [██░░░░░░░░] 17%
 
@@ -138,6 +138,13 @@ None yet.
 - Research flag for Phase 3 planning: brain.js's `train()` single-example/single-iteration semantics need direct verification against source/behavior — unconfirmed whether it produces one online gradient update vs. iterating to convergence on one example.
 - Research flag for Phase 5 planning: multi-signal session credit assignment ("most-proximal signal" heuristic) is a reasonable default but unvalidated — should be documented as an accepted limitation, not silently implemented.
 - Code review WR-03 (Phase 5): `endSession`'s `buildTarget` derives its training target purely from the model's own prior prediction (no independent ground-truth signal) — a self-reinforcing loop with no corrective force against an early wrong classification. The 16-session soak test only checks for softmax collapse/saturation over a short, alternating-outcome run; it does not test long-run drift toward a degenerate dominant-class predictor under a skewed real-world outcome distribution. Accepted as in-scope design (03-RESEARCH.md Assumption A1) — flagged here as a known limitation, not re-litigated. Revisit if production traffic shows single-class dominance.
+- The receiver serves the built `dist/sdk.js` bundle (gitignored), not raw `src/`. After any `src/` change that affects live-branch1 verification, `npm run build` must be re-run before re-testing, or the suite will exercise a stale bundle (surfaced during quick task 260720-wau's Task 3 verification pass).
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260720-wau | Fix SC2 log-order bug in src/index.js init() sequencing and SC3 amount-input test gap in tests/e2e/branch1-live.spec.js | 2026-07-21 | 8d5f398 | [260720-wau-fix-sc2-log-order-bug-in-src-index-js-in](./quick/260720-wau-fix-sc2-log-order-bug-in-src-index-js-in/) |
 
 ## Deferred Items
 
@@ -149,6 +156,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-20T23:47:40.050Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-integration-verification-against-live-branch-1/06-CONTEXT.md
+Last session: 2026-07-21T02:15:36.799Z
+Stopped at: Phase 6 Plan 06-02 paused at Task 3 human-verify checkpoint
+Resume file: .planning/phases/06-integration-verification-against-live-branch-1/06-02-PLAN.md
