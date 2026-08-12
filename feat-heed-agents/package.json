@@ -1,0 +1,17 @@
+{
+  "name": "heed-agents",
+  "version": "1.0.0",
+  "description": "Playwright behavioral persona agents for the Heed platform — generates labeled session data for Repo 4.",
+  "main": "run.js",
+  "scripts": {
+    "run": "node run.js",
+    "confident": "node run.js --persona=confident --sessions=1",
+    "hesitant": "node run.js --persona=hesitant --sessions=1",
+    "abandoning": "node run.js --persona=abandoning --sessions=1",
+    "volume": "node run.js --persona=all --sessions=100"
+  },
+  "dependencies": {
+    "playwright": "^1.47.0",
+    "uuid": "^10.0.0"
+  }
+}
