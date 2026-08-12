@@ -79,7 +79,7 @@ export default function SwapPage() {
                   setAmount(val);
                 }
               }}
-              className="heed-input flex-1 text-right text-3xl font-bold font-mono bg-transparent border-none focus-visible:ring-0 h-auto py-0 text-white placeholder:text-white/20"
+              className="heed-input flex-1 text-right text-3xl font-bold font-mono bg-transparent border-none focus-visible:ring-0 h-12 text-white placeholder:text-white/20"
             />
           </div>
           {numericAmount > 0 && (

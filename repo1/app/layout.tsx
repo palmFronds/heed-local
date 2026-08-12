@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import Script from "next/script";
 import { SwapProvider } from "./providers";
 import "./globals.css";
 
@@ -47,6 +48,14 @@ export default function RootLayout({
         <div id="mobile-app">
           <SwapProvider>{children}</SwapProvider>
         </div>
+
+        {/* Heed SDK — loads after hydration, initialises against demo-platform config */}
+        <Script id="heed-sdk-loader" strategy="afterInteractive">{`
+          var s = document.createElement('script');
+          s.src = '/heed-sdk.js';
+          s.onload = function () { window.Heed && window.Heed.initDemo(); };
+          document.head.appendChild(s);
+        `}</Script>
       </body>
     </html>
   );
